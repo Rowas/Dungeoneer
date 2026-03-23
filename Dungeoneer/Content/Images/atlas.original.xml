@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Created with Free texture packer v0.6.7 http://free-tex-packer.com
+Format:
+n  => name
+x  => x pos
+y  => y pos
+w  => width
+h  => height
+pX => x pos of the pivot point
+pY => y pos of the pivot point
+oX => x-corner offset
+oY => y-corner offset
+oW => original width
+oH => original height
+r => 'y' if sprite is rotated-->
+<TextureAtlas imagePath="Atlas.png" width="1524" height="1689" scale="1" format="RGBA8888">
+  <sprite n="slime_swallow.png" x="2" y="2" w="1059" h="456" pX="0.5" pY="0.5" oX="24" oY="24" oW="1120" oH="504"/>
+  <sprite n="slime_die.png" x="2" y="462" w="976" h="447" pX="0.5" pY="0.5" oX="24" oY="33" oW="1040" oH="504"/>
+  <sprite n="slime_move.png" x="2" y="913" w="501" h="450" pX="0.5" pY="0.5" oX="24" oY="30" oW="560" oH="504"/>
+  <sprite n="slime_idle2.png" x="507" y="913" w="499" h="449" pX="0.5" pY="0.5" oX="24" oY="31" oW="560" oH="504"/>
+  <sprite n="slime_idle3.png" x="1010" y="462" w="499" h="449" pX="0.5" pY="0.5" oX="24" oY="31" oW="560" oH="504"/>
+  <sprite n="Wall - Brick 3 64x64.png" x="1010" y="915" w="512" h="384" pX="0.5" pY="0.5"/>
+  <sprite n="Floor-Stone_02-64x64.png" x="1010" y="1303" w="512" h="384" pX="0.5" pY="0.5"/>
+  <sprite n="Text-White.png" x="507" y="1366" w="255" h="272" pX="0.5" pY="0.5"/>
+  <sprite n="slime_idle1.png" x="1065" y="2" w="100" h="447" pX="0.5" pY="0.5" oX="24" oY="33" oW="160" oH="504"/>
+  <sprite n="HUD.png" x="766" y="1366" w="80" h="76" pX="0.5" pY="0.5" oX="0" oY="1" oW="80" oH="80"/>
+  <sprite n="Others.png" x="850" y="1366" w="63" h="60" pX="0.5" pY="0.5" oX="0" oY="4" oW="64" oH="64"/>
+</TextureAtlas>
