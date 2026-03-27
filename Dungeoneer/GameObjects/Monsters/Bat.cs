@@ -5,14 +5,14 @@ using System;
 
 namespace Dungeoneer.GameObjects.Monsters;
 
-public class Rat : ActorBase
+public class Bat : ActorBase
 {
-    public override int healthPool { get; set; } = 8;
-    public override int minDamage { get; set; } = 2;
-    public override int maxDamage { get; set; } = 4;
-    public override int armor { get; set; } = 0;
+    public override int healthPool { get; set; } = 10;
+    public override int minDamage { get; set; } = 1;
+    public override int maxDamage { get; set; } = 3;
+    public override int armor { get; set; } = 1;
 
-    public Rat(
+    public Bat(
         AnimatedSprite spriteIdle,
         AnimatedSprite spriteMove,
         float xPos,
@@ -20,7 +20,6 @@ public class Rat : ActorBase
         Func<ActorBase, Vector2, bool> canMoveToWorldPos)
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos)
     {
-
     }
     protected override Vector2? GetDesiredDirection(GameTime gameTime)
     {
@@ -30,15 +29,13 @@ public class Rat : ActorBase
 
         //return null; // För att göra råttorna stillastående, ta bort denna rad för att låta dem röra sig
 
-        if (direction >= 0 && direction < 0.2)
+        if (direction >= 0 && direction < 0.25)
             return -Vector2.UnitY; // Up
-        else if (direction >= 0.20 && direction < 0.4)
+        else if (direction >= 0.25 && direction < 0.5)
             return Vector2.UnitY; // Down
-        else if (direction >= 0.4 && direction < 0.6)
+        else if (direction >= 0.5 && direction < 0.75)
             return -Vector2.UnitX; // Left
-        else if (direction >= 0.6 && direction < 0.8)
-            return Vector2.UnitX; // Right
         else
-            return Vector2.Zero; // Stand Still
+            return Vector2.UnitX; // Right
     }
 }

@@ -22,28 +22,38 @@ public class DungeonMap
     public int TileSize { get; }
 
     public Vector2 PlayerStart { get; private set; }
+
+    public Dictionary<int, Vector2> RatPosition { get; private set; } = new();
+    public int ratN { get; private set; } = 0;
+
+    public Dictionary<int, Vector2> BatPosition { get; private set; } = new();
+    public int batN { get; private set; } = 0;
+
+    public Dictionary<int, Vector2> PotionPosition { get; private set; } = new();
+    public int potionN { get; private set; } = 0;
+
     public List<(char Type, Vector2 Position)> Entities { get; } = new();
 
     public bool DebugDrawTileset { get; set; } = false;
 
     private static readonly int[] _wallBitmaskToTile = new int[16]
     {
-        0,   // (0110) ╔  East + South
-        1,   // (1100) ╗  South + West
-        2,   // (0101) ║  North + South (vertical)
-        3,   // (1110) ╦  East + South + West (T down)
-        4,   // (1011) ╩  North + East + West (T up)
-        5,   //  (1000) ╡  West only
-        6,   //  (0001) ╨  North only
-        7,   // (1111) ╬  All four sides (cross)
-        8,   // (0011) ╚  North + East
-        9,   // (1001) ╝  North + West
-        10,  // (1010) ═  East + West (horizontal) 
-        11,  // (0111) ╠  North + East + South (T right)
-        12,  // (1101) ╣  North + South + West (T left)
-        13,  // (0100) ╥  South only
-        14,  // (0010) ╞  East only
-        31,  // (0000) □  Isolated — no wall neighbors
+        31,  //  0  □  Isolated — no wall neighbors
+        6,  //  1  ╨  North only
+        14,  //  2  ╞  East only
+        8,  //  3  ╚  North + East
+        13,  //  4  ╥  South only
+        2,  //  5  ║  North + South (vertical)
+        0,  //  6  ╔  East + South >XXXX<
+        11,  //  7  ╠  North + East + South (T right)
+        5,  //  8  ╡  West only
+        9,  //  9  ╝  North + West
+        10, // 10  ═  East + West (horizontal) 
+        4, // 11  ╩  North + East + West (T up)
+        1, // 12  ╗  South + West
+        12, // 13  ╣  North + South + West (T left)
+        3, // 14  ╦  East + South + West (T down)
+        7, // 15  ╬  All four sides (cross)
     };
 
     private static readonly int[] _floorTileVariants = { 0, 1, 2, 3 };
@@ -166,21 +176,5 @@ public class DungeonMap
         int tileX = (int)(worldPosition.X / TileSize);
         int tileY = (int)(worldPosition.Y / TileSize);
         return IsFloor(tileX, tileY);
-    }
-
-    /// <summary>
-    /// Debug: ritar ut hela vägg-tilesetet i ett rutnät + index-text.
-    /// Körs bäst i ett hörn av skärmen.
-    /// </summary>
-    public void DrawWallTilesetDebug(SpriteBatch spriteBatch, SpriteFont font, Vector2 origin, int padding = 6)
-    {
-        for (int i = 0; i < _wallTileset.Count; i++)
-        {
-            int col = i % _wallTileset.Columns;
-            int row = i / _wallTileset.Columns;
-            Vector2 pos = origin + new Vector2(col * (TileSize + padding), row * (TileSize + padding));
-            _wallTileset.GetTile(i).Draw(spriteBatch, pos, Color.White);
-            spriteBatch.DrawString(font, i.ToString(), pos + new Vector2(2, 2), Color.Yellow);
-        }
     }
 }

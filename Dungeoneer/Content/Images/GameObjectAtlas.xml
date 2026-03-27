@@ -1,0 +1,84 @@
+<TextureAtlas>
+  <Texture>images/GameObjectAtlas</Texture>
+  <Regions>
+    <Region name="slime-idle-pink-1" x="268" y="11" width="64" height="64"/>
+    <Region name="slime-idle-pink-2" x="343" y="11" width="64" height="64"/>
+
+    <Region name="slime-move-pink-1" x="415" y="11" width="64" height="64"/>
+    <Region name="slime-move-pink-2" x="502" y="11" width="64" height="64"/>
+    <Region name="slime-move-pink-3" x="589" y="11" width="64" height="64"/>
+    <Region name="slime-move-pink-4" x="676" y="11" width="64" height="64"/>
+    <Region name="slime-move-pink-5" x="752" y="11" width="64" height="64"/>
+    <Region name="slime-move-pink-6" x="834" y="11" width="64" height="64"/>
+    <Region name="slime-move-pink-7" x="908" y="11" width="64" height="64"/>
+
+    <Region name="red-potion" x="268" y="82" width="64" height="64"/>
+    <Region name="food-bread" x="332" y="82" width="64" height="64"/>
+    <Region name="tier-1-armor" x="396" y="82" width="64" height="64"/>
+    <Region name="tier-1-sword" x="460" y="82" width="64" height="64"/>
+
+    <Region name="plague-rat-idle-1" x="268" y="201" width="64" height="64"/>
+    <Region name="plague-rat-idle-2" x="332" y="201" width="64" height="64"/>
+    <Region name="plague-rat-idle-3" x="396" y="201" width="64" height="64"/>
+    <Region name="plague-rat-idle-4" x="460" y="201" width="64" height="64"/>
+
+    <Region name="brawny-ogre-idle-1" x="524" y="201" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-2" x="588" y="201" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-3" x="652" y="201" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-4" x="716" y="201" width="64" height="64"/>
+
+    <Region name="evil-bat-idle-1" x="268" y="265" width="64" height="64" />
+    <Region name="evil-bat-idle-2" x="330" y="265" width="64" height="64" />
+    <Region name="evil-bat-idle-3" x="394" y="265" width="64" height="64" />
+    <Region name="evil-bat-idle-4" x="458" y="265" width="64" height="64" />
+
+    <Region name="grave-revenant-boss-idle-1" x="522" y="265" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-2" x="586" y="265" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-3" x="650" y="265" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-4" x="714" y="265" width="64" height="64" />
+  </Regions>
+  <Animations>
+    <Animation name="slime-idle-pink-animation" delay="400">
+      <Frame region="slime-idle-pink-1"/>
+      <Frame region="slime-idle-pink-2"/>
+    </Animation>
+
+    <Animation name="slime-move-pink-animation" delay="48">
+      <Frame region="slime-move-pink-1"/>
+      <Frame region="slime-move-pink-2"/>
+      <Frame region="slime-move-pink-3"/>
+      <Frame region="slime-move-pink-4"/>
+      <Frame region="slime-move-pink-5"/>
+      <Frame region="slime-move-pink-6"/>
+      <Frame region="slime-move-pink-7"/>
+    </Animation>
+
+    <Animation name="plague-rat-idle-animation" delay="333">
+      <Frame region="plague-rat-idle-1"/>
+      <Frame region="plague-rat-idle-2"/>
+      <Frame region="plague-rat-idle-3"/>
+      <Frame region="plague-rat-idle-4"/>
+    </Animation>
+
+    <Animation name="evil-bat-idle-animation" delay="333">
+      <Frame region="evil-bat-idle-1"/>
+      <Frame region="evil-bat-idle-2"/>
+      <Frame region="evil-bat-idle-3"/>
+      <Frame region="evil-bat-idle-4"/>
+    </Animation>
+
+    <Animation name="grave-revenant-boss-idle-animation" delay="333">
+      <Frame region="grave-revenant-boss-idle-1"/>
+      <Frame region="grave-revenant-boss-idle-2"/>
+      <Frame region="grave-revenant-boss-idle-3"/>
+      <Frame region="grave-revenant-boss-idle-4"/>
+    </Animation>
+
+    <Animation name="brawny-ogre-idle-animation" delay="333">
+      <Frame region="brawny-ogre-idle-1"/>
+      <Frame region="brawny-ogre-idle-2"/>
+      <Frame region="brawny-ogre-idle-3"/>
+      <Frame region="brawny-ogre-idle-4"/>
+    </Animation>
+  </Animations>
+</TextureAtlas>

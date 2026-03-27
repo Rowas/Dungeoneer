@@ -4,9 +4,9 @@ using MonoGameLibrary.Graphics;
 
 namespace Dungeoneer.GameObjects.Pickups;
 
-public class HealthPotion : PropBase
+public class Weapon : PropBase
 {
-    public HealthPotion(
+    public Weapon(
         Sprite sprite,
         float xPos,
         float yPos)

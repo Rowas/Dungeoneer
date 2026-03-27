@@ -33,21 +33,6 @@
 #begin Fonts/04B_30.ttf
 /copy:Fonts/04B_30.ttf
 
-#begin Images/atlas.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Images/atlas.png
-
-#begin Images/atlas.xml
-/copy:Images/atlas.xml
-
 #begin Images/DungeonAtlas.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -59,6 +44,21 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Images/DungeonAtlas.png
+
+#begin Images/GameObjectAtlas.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/GameObjectAtlas.png
+
+#begin Images/GameObjectAtlas.xml
+/copy:Images/GameObjectAtlas.xml
 
 #begin LevelFiles/Level1_w_Boss.txt
 /copy:LevelFiles/Level1_w_Boss.txt
