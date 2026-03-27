@@ -8,7 +8,7 @@ using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using System.Collections.Generic;
-using System.Threading;
+
 
 namespace Dungeoneer.Scenes;
 
@@ -24,8 +24,10 @@ public class GameScene : Scene
 
     private PlayerCharacter _playerCharacter;
 
-    List<ActorBase> _actors = new();
-    List<PropBase> _props = new();
+    private TextureAtlas atlas { get; set; }
+
+    private List<ActorBase> _actors = new();
+    private List<PropBase> _props = new();
 
     // The font to use to render normal text.
     private SpriteFont _font;
@@ -48,16 +50,16 @@ public class GameScene : Scene
     public override void LoadContent()
     {
         // Load the font for the standard text.
-        _font = Core.Content.Load<SpriteFont>("fonts/04B_30");
+        //_font = Core.Content.Load<SpriteFont>("fonts/04B_30");
 
         // Load the font for the title text.
-        _font5x = Content.Load<SpriteFont>("fonts/04B_30_5x");
+        //_font5x = Content.Load<SpriteFont>("fonts/04B_30_5x");
 
         _dungeonMap = new DungeonMap(64);
         _dungeonMap.LoadContent(Content, "Images/DungeonAtlas");
         _dungeonMap.LoadMap(Content, "LevelFiles/Level1_w_Boss.txt");
 
-        TextureAtlas atlas = TextureAtlas.FromFile(Content, "images/GameObjectAtlas.xml");
+        atlas = TextureAtlas.FromFile(Content, "images/GameObjectAtlas.xml");
 
         AnimatedSprite pcSpriteIdle = atlas.CreateAnimatedSprite("slime-idle-pink-animation");
         pcSpriteIdle.Scale = Vector2.One;
@@ -83,7 +85,7 @@ public class GameScene : Scene
             }
         };
 
-        _actors = LoadEntities.ParseActors(_dungeonMap, atlas, CanActorMoveTo);
+        _actors = LoadEntities.ParseActors(_dungeonMap, atlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
         _props = LoadEntities.ParseProps(_dungeonMap, atlas);
 
     }
@@ -125,38 +127,6 @@ public class GameScene : Scene
 
         _cameraPos = Camera.CameraLoc(Core.GraphicsDevice.Viewport, _playerCharacter, _dungeonMap,
                                         _cameraPos, gameTime, worldScale, CAMERA_SMOOTH_SPEED);
-
-        Point playerTile = ToTile(_playerCharacter.Position);
-
-        // Om du vill fånga krock “under steg” också:
-        Point? playerTargetTile = _playerCharacter.IsMoving
-            ? ToTile(_playerCharacter.TargetPosition)
-            : (Point?)null;
-
-        foreach (var monster in _actors)
-        {
-            Point monsterTile = ToTile(monster.Position);
-
-            Point? monsterTargetTile = monster.IsMoving
-                ? ToTile(monster.TargetPosition)
-                : (Point?)null;
-
-            bool sameTileNow =
-                monsterTile == playerTile;
-
-            bool meetDuringMove =
-                (playerTargetTile.HasValue && monsterTile == playerTargetTile.Value) ||
-                (monsterTargetTile.HasValue && monsterTargetTile.Value == playerTile) ||
-                (playerTargetTile.HasValue && monsterTargetTile.HasValue &&
-                 playerTargetTile.Value == monsterTargetTile.Value);
-
-            if (sameTileNow || meetDuringMove)
-            {
-                _state = GameState.Combat;
-                StartCombat(monster);
-                break;
-            }
-        }
     }
 
     public override void Draw(GameTime gameTime)
@@ -229,22 +199,18 @@ public class GameScene : Scene
         {
             if (ReferenceEquals(other, self)) continue;
 
-            // Block om någon står där nu
             if (ToTile(other.Position) == candidateTile)
                 return other;
 
-            // Block om någon är på väg dit (valfritt, men matchar din nuvarande logik)
             if (other.IsMoving && ToTile(other.TargetPosition) == candidateTile)
                 return other;
         }
 
         return null;
     }
-    
+
     private void StartCombat(ActorBase monster)
     {
-        _combatRemainingMs = 5000;
+        Core.ChangeScene(new CombatScene(new CombatEncounter(_playerCharacter, monster, _dungeonMap, atlas)));
     }
-
-    
 }

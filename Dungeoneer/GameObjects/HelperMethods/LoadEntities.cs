@@ -11,7 +11,8 @@ namespace Dungeoneer.GameObjects.HelperMethods;
 
 public static class LoadEntities
 {
-    public static List<ActorBase> ParseActors(DungeonMap _dungeonMap, TextureAtlas atlas, Func<ActorBase, Vector2, bool> canMoveToWorldPos)
+    public static List<ActorBase> ParseActors(DungeonMap _dungeonMap, TextureAtlas atlas,
+                    Func<ActorBase, Vector2, bool> canMoveToWorldPos, Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
     {
         List<ActorBase> _actors = new();
 
@@ -29,7 +30,8 @@ public static class LoadEntities
                         ratSprite,
                         entity.Position.X,
                         entity.Position.Y,
-                        canMoveToWorldPos
+                        canMoveToWorldPos,
+                        getBlockingActorAtWorldPos
                     ));
                     break;
                 case 'b':
@@ -41,7 +43,8 @@ public static class LoadEntities
                         batSprite,
                         entity.Position.X,
                         entity.Position.Y,
-                        canMoveToWorldPos
+                        canMoveToWorldPos,
+                        getBlockingActorAtWorldPos
                     ));
                     break;
                 case 'G':
@@ -52,7 +55,8 @@ public static class LoadEntities
                         ogreSprite,
                         entity.Position.X,
                         entity.Position.Y,
-                        canMoveToWorldPos
+                        canMoveToWorldPos,
+                        getBlockingActorAtWorldPos
                     ));
                     break;
                 case 'B':
@@ -63,7 +67,8 @@ public static class LoadEntities
                         bossSprite,
                         entity.Position.X,
                         entity.Position.Y,
-                        canMoveToWorldPos
+                        canMoveToWorldPos,
+                        getBlockingActorAtWorldPos
                     ));
                     break;
             }

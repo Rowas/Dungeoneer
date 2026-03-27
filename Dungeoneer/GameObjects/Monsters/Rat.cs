@@ -17,8 +17,9 @@ public class Rat : ActorBase
         AnimatedSprite spriteMove,
         float xPos,
         float yPos,
-        Func<ActorBase, Vector2, bool> canMoveToWorldPos)
-        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos)
+        Func<ActorBase, Vector2, bool> canMoveToWorldPos,
+        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
+        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos)
     {
 
     }
@@ -40,5 +41,10 @@ public class Rat : ActorBase
             return Vector2.UnitX; // Right
         else
             return Vector2.Zero; // Stand Still
+    }
+
+    protected override void MoveToCombatLocation(ActorBase target)
+    {
+        throw new NotImplementedException();
     }
 }

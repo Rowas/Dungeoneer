@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Dungeoneer.GameObjects.Player;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
@@ -44,7 +45,7 @@ public abstract class ActorBase
         AnimatedSprite moveSprite,
         Vector2 startPosition,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
+        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
     {
         IdleSprite = idleSprite;
         MoveSprite = moveSprite;
@@ -119,7 +120,12 @@ public abstract class ActorBase
         Vector2 candidateTo = Position + Direction * step;
 
         if (!CanEnterWorldPosition(candidateTo))
+        {
+            var blocker = _getBlockingActorAtWorldPos?.Invoke(this, candidateTo);
+            if (blocker != null)
+                BlockedByActor?.Invoke(this, blocker);
             return false;
+        }
 
         From = Position;
         To = candidateTo;
@@ -128,14 +134,6 @@ public abstract class ActorBase
 
         if (Direction.X > 0) Heading = 1;
         else if (Direction.X < 0) Heading = -1;
-
-        if (!CanEnterWorldPosition(candidateTo))
-        {
-            var blocker = _getBlockingActorAtWorldPos?.Invoke(this, candidateTo);
-            if (blocker != null)
-                BlockedByActor?.Invoke(this, blocker);
-            return false;
-        }
 
         return true;
     }
@@ -181,6 +179,20 @@ public abstract class ActorBase
         }
     }
 
+    protected virtual void MoveToCombatLocation(ActorBase target)
+    {
+        if (target.GetType() == typeof(PlayerCharacter))
+        {
+            target.Position = new Vector2();
+            target.Heading = 1;
+        }
+        else
+        {
+            target.Position = new Vector2();
+            target.Heading = -1;
+        }
+    }
+
     private static Vector2 Normalize4(Vector2 d)
     {
         if (Math.Abs(d.X) > Math.Abs(d.Y))
@@ -189,4 +201,5 @@ public abstract class ActorBase
             return new Vector2(0f, Math.Sign(d.Y));
         return Vector2.Zero;
     }
+
 }
