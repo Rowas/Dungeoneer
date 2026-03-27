@@ -11,18 +11,15 @@ public class Game1 : Core
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
-    public Game1() : base("Dungeon Slime", 1920, 1080, false)
+    public Game1() : base("Dungeoneer", 2560, 1600, true)
     {
 
     }
 
     protected override void Initialize()
     {
-        // TODO: Add your initialization logic here
-
         base.Initialize();
 
-        // Start the game with the title scene.
         ChangeScene(new GameScene());
 
     }
@@ -37,16 +34,12 @@ public class Game1 : Core
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
-        // TODO: Add your update logic here
-
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
-
-        // TODO: Add your drawing code here
+        GraphicsDevice.Clear(Color.Black);
 
         base.Draw(gameTime);
     }

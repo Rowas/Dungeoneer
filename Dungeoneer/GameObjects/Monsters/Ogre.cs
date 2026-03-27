@@ -6,14 +6,14 @@ using System;
 
 namespace Dungeoneer.GameObjects.Monsters;
 
-public class BossMonster : ActorBase
+public class Ogre : ActorBase
 {
-    public override int healthPool { get; set; } = 50;
+    public override int healthPool { get; set; } = 30;
     public override int minDamage { get; set; } = 5;
     public override int maxDamage { get; set; } = 10;
-    public override int armor { get; set; } = 2;
+    public override int armor { get; set; } = 3;
 
-    public BossMonster(
+    public Ogre(
         AnimatedSprite spriteIdle,
         AnimatedSprite spriteMove,
         float xPos,
