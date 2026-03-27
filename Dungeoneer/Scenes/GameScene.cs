@@ -8,11 +8,20 @@ using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Dungeoneer.Scenes;
 
 public class GameScene : Scene
 {
+    private enum GameState
+    {
+        Playing,
+        Paused,
+        Combat,
+        GameOver
+    }
+
     private PlayerCharacter _playerCharacter;
 
     List<ActorBase> _actors = new();
@@ -31,6 +40,8 @@ public class GameScene : Scene
     private float worldScale = 1.0f; // ex 2x
 
     private float CAMERA_SMOOTH_SPEED = 1.5f;
+
+    private GameState _state;
 
     public override void LoadContent()
     {
@@ -74,6 +85,13 @@ public class GameScene : Scene
 
     public override void Update(GameTime gameTime)
     {
+        if (_state == GameState.Combat || _state == GameState.Paused)
+        {
+            // In combat or Paused, we might want to skip updating the world or handle it differently.
+            // For now, we'll just return early to prevent any updates.
+            return;
+        }
+
         foreach (var actor in _actors)
         {
             actor.Update(gameTime);
@@ -93,6 +111,38 @@ public class GameScene : Scene
 
         _cameraPos = Camera.CameraLoc(Core.GraphicsDevice.Viewport, _playerCharacter, _dungeonMap,
                                         _cameraPos, gameTime, worldScale, CAMERA_SMOOTH_SPEED);
+
+        Point playerTile = ToTile(_playerCharacter.Position);
+
+        // Om du vill fånga krock “under steg” också:
+        Point? playerTargetTile = _playerCharacter.IsMoving
+            ? ToTile(_playerCharacter.TargetPosition)
+            : (Point?)null;
+
+        foreach (var monster in _actors)
+        {
+            Point monsterTile = ToTile(monster.Position);
+
+            Point? monsterTargetTile = monster.IsMoving
+                ? ToTile(monster.TargetPosition)
+                : (Point?)null;
+
+            bool sameTileNow =
+                monsterTile == playerTile;
+
+            bool meetDuringMove =
+                (playerTargetTile.HasValue && monsterTile == playerTargetTile.Value) ||
+                (monsterTargetTile.HasValue && monsterTargetTile.Value == playerTile) ||
+                (playerTargetTile.HasValue && monsterTargetTile.HasValue &&
+                 playerTargetTile.Value == monsterTargetTile.Value);
+
+            if (sameTileNow || meetDuringMove)
+            {
+                _state = GameState.Combat;
+                StartCombat(monster);
+                break;
+            }
+        }
     }
 
     public override void Draw(GameTime gameTime)
@@ -155,5 +205,11 @@ public class GameScene : Scene
                 return false;
         }
         return true;
+    }
+
+    private void StartCombat(ActorBase monster)
+    {
+        Thread.Sleep(5000); // Simulate combat duration
+        _state = GameState.Playing; // Return to playing state after combat
     }
 }
