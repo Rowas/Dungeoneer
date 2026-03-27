@@ -30,6 +30,9 @@ public abstract class ActorBase
     public Vector2 TargetPosition => To;
 
     private readonly Func<ActorBase, Vector2, bool> _canMoveToWorldPos;
+    private readonly Func<ActorBase, Vector2, ActorBase?> _getBlockingActorAtWorldPos;
+
+    public event Action<ActorBase, ActorBase>? BlockedByActor;
 
     public abstract int healthPool { get; set; }
     public abstract int minDamage { get; set; }
@@ -40,12 +43,14 @@ public abstract class ActorBase
         AnimatedSprite idleSprite,
         AnimatedSprite moveSprite,
         Vector2 startPosition,
-        Func<ActorBase, Vector2, bool> canMoveToWorldPos)
+        Func<ActorBase, Vector2, bool> canMoveToWorldPos,
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
     {
         IdleSprite = idleSprite;
         MoveSprite = moveSprite;
         ActiveSprite = idleSprite;
         _canMoveToWorldPos = canMoveToWorldPos;
+        _getBlockingActorAtWorldPos = getBlockingActorAtWorldPos;
         Position = startPosition;
         From = startPosition;
         To = startPosition;
@@ -123,6 +128,14 @@ public abstract class ActorBase
 
         if (Direction.X > 0) Heading = 1;
         else if (Direction.X < 0) Heading = -1;
+
+        if (!CanEnterWorldPosition(candidateTo))
+        {
+            var blocker = _getBlockingActorAtWorldPos?.Invoke(this, candidateTo);
+            if (blocker != null)
+                BlockedByActor?.Invoke(this, blocker);
+            return false;
+        }
 
         return true;
     }

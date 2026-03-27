@@ -43,6 +43,8 @@ public class GameScene : Scene
 
     private GameState _state;
 
+    private double _combatRemainingMs;
+
     public override void LoadContent()
     {
         // Load the font for the standard text.
@@ -67,8 +69,19 @@ public class GameScene : Scene
             pcSpriteMove,
             _dungeonMap.PlayerStart.X,
             _dungeonMap.PlayerStart.Y,
-            CanActorMoveTo
+            CanActorMoveTo,
+            GetBlockingActorAtWorldPos
         );
+
+        _playerCharacter.BlockedByActor += (self, blocker) =>
+        {
+            // blocker är en ActorBase; i ditt spel är det i praktiken ett monster om det inte är player
+            if (blocker != _playerCharacter)
+            {
+                _state = GameState.Combat;
+                StartCombat(blocker);
+            }
+        };
 
         _actors = LoadEntities.ParseActors(_dungeonMap, atlas, CanActorMoveTo);
         _props = LoadEntities.ParseProps(_dungeonMap, atlas);
@@ -85,10 +98,11 @@ public class GameScene : Scene
 
     public override void Update(GameTime gameTime)
     {
-        if (_state == GameState.Combat || _state == GameState.Paused)
+        if (_state == GameState.Combat)
         {
-            // In combat or Paused, we might want to skip updating the world or handle it differently.
-            // For now, we'll just return early to prevent any updates.
+            _combatRemainingMs -= gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (_combatRemainingMs <= 0)
+                _state = GameState.Playing;
             return;
         }
 
@@ -207,9 +221,30 @@ public class GameScene : Scene
         return true;
     }
 
+    private ActorBase? GetBlockingActorAtWorldPos(ActorBase self, Vector2 candidateWorldPos)
+    {
+        Point candidateTile = ToTile(candidateWorldPos);
+
+        foreach (var other in EnumerateAllActors())
+        {
+            if (ReferenceEquals(other, self)) continue;
+
+            // Block om någon står där nu
+            if (ToTile(other.Position) == candidateTile)
+                return other;
+
+            // Block om någon är på väg dit (valfritt, men matchar din nuvarande logik)
+            if (other.IsMoving && ToTile(other.TargetPosition) == candidateTile)
+                return other;
+        }
+
+        return null;
+    }
+    
     private void StartCombat(ActorBase monster)
     {
-        Thread.Sleep(5000); // Simulate combat duration
-        _state = GameState.Playing; // Return to playing state after combat
+        _combatRemainingMs = 5000;
     }
+
+    
 }
