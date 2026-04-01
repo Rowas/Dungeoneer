@@ -16,26 +16,31 @@
     <Region name="food-bread" x="332" y="82" width="64" height="64"/>
     <Region name="tier-1-armor" x="396" y="82" width="64" height="64"/>
     <Region name="tier-1-sword" x="460" y="82" width="64" height="64"/>
+    <Region name="xp-icon" x="525" y="82" width="64" height="64"/>
 
-    <Region name="plague-rat-idle-1" x="268" y="201" width="64" height="64"/>
-    <Region name="plague-rat-idle-2" x="332" y="201" width="64" height="64"/>
-    <Region name="plague-rat-idle-3" x="396" y="201" width="64" height="64"/>
-    <Region name="plague-rat-idle-4" x="460" y="201" width="64" height="64"/>
+    <Region name="focused-button-1" x="590" y="82" width="128" height="64" />
+    <Region name="focused-button-2" x="720" y="82" width="128" height="64" />
+    <Region name="unfocused-button" x="848" y="82" width="128" height="64" />
 
-    <Region name="brawny-ogre-idle-1" x="524" y="201" width="64" height="64"/>
-    <Region name="brawny-ogre-idle-2" x="588" y="201" width="64" height="64"/>
-    <Region name="brawny-ogre-idle-3" x="652" y="201" width="64" height="64"/>
-    <Region name="brawny-ogre-idle-4" x="716" y="201" width="64" height="64"/>
+    <Region name="plague-rat-idle-1" x="268" y="146" width="64" height="64"/>
+    <Region name="plague-rat-idle-2" x="332" y="146" width="64" height="64"/>
+    <Region name="plague-rat-idle-3" x="396" y="146" width="64" height="64"/>
+    <Region name="plague-rat-idle-4" x="460" y="146" width="64" height="64"/>
 
-    <Region name="evil-bat-idle-1" x="268" y="265" width="64" height="64" />
-    <Region name="evil-bat-idle-2" x="330" y="265" width="64" height="64" />
-    <Region name="evil-bat-idle-3" x="394" y="265" width="64" height="64" />
-    <Region name="evil-bat-idle-4" x="458" y="265" width="64" height="64" />
+    <Region name="brawny-ogre-idle-1" x="524" y="146" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-2" x="588" y="146" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-3" x="652" y="146" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-4" x="716" y="146" width="64" height="64"/>
 
-    <Region name="grave-revenant-boss-idle-1" x="522" y="265" width="64" height="64" />
-    <Region name="grave-revenant-boss-idle-2" x="586" y="265" width="64" height="64" />
-    <Region name="grave-revenant-boss-idle-3" x="650" y="265" width="64" height="64" />
-    <Region name="grave-revenant-boss-idle-4" x="714" y="265" width="64" height="64" />
+    <Region name="evil-bat-idle-1" x="268" y="211" width="64" height="64" />
+    <Region name="evil-bat-idle-2" x="330" y="211" width="64" height="64" />
+    <Region name="evil-bat-idle-3" x="394" y="211" width="64" height="64" />
+    <Region name="evil-bat-idle-4" x="458" y="211" width="64" height="64" />
+
+    <Region name="grave-revenant-boss-idle-1" x="522" y="211" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-2" x="586" y="211" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-3" x="650" y="211" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-4" x="714" y="211" width="64" height="64" />
   </Regions>
   <Animations>
     <Animation name="slime-idle-pink-animation" delay="400">
@@ -79,6 +84,11 @@
       <Frame region="brawny-ogre-idle-2"/>
       <Frame region="brawny-ogre-idle-3"/>
       <Frame region="brawny-ogre-idle-4"/>
+    </Animation>
+
+    <Animation name="focused-button-animation" delay="333">
+      <Frame region="focused-button-1" />
+      <Frame region="focused-button-2" />
     </Animation>
   </Animations>
 </TextureAtlas>

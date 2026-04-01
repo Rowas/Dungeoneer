@@ -6,16 +6,20 @@ namespace Dungeoneer.GameObjects.Bases;
 
 public abstract class PropBase
 {
+    public int PropId { get; }
+    public char MapKind { get; }
     protected Sprite ActiveSprite { get; set; }
     public Vector2 Position { get; protected set; }
     public bool IsCollected { get; protected set; }
 
     public virtual bool CanInteract => !IsCollected;
 
-    protected PropBase(Sprite sprite, Vector2 position)
+    protected PropBase(Sprite sprite, Vector2 position, int propId, char mapKind)
     {
         ActiveSprite = sprite;
         Position = position;
+        PropId = propId;
+        MapKind = mapKind;
     }
 
     public virtual void Update(GameTime gameTime)

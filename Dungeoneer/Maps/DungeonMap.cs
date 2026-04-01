@@ -22,19 +22,9 @@ public class DungeonMap
     public int TileSize { get; }
 
     public Vector2 PlayerStart { get; private set; }
-
-    public Dictionary<int, Vector2> RatPosition { get; private set; } = new();
-    public int ratN { get; private set; } = 0;
-
-    public Dictionary<int, Vector2> BatPosition { get; private set; } = new();
-    public int batN { get; private set; } = 0;
-
-    public Dictionary<int, Vector2> PotionPosition { get; private set; } = new();
-    public int potionN { get; private set; } = 0;
+    public char PlayerSymbol { get; private set; }
 
     public List<(char Type, Vector2 Position)> Entities { get; } = new();
-
-    public bool DebugDrawTileset { get; set; } = false;
 
     private static readonly int[] _wallBitmaskToTile = new int[16]
     {
@@ -54,6 +44,11 @@ public class DungeonMap
         12, // 13  ╣  North + South + West (T left)
         3, // 14  ╦  East + South + West (T down)
         7, // 15  ╬  All four sides (cross)
+    };
+
+    private static readonly int[] _combatWallBitmaskToTile = new int[2]
+    {
+        22, 29
     };
 
     private static readonly int[] _floorTileVariants = { 0, 1, 2, 3 };
@@ -107,6 +102,7 @@ public class DungeonMap
                 if (c == '@')
                 {
                     PlayerStart = new Vector2(x * TileSize, y * TileSize);
+                    PlayerSymbol = c;
                     _grid[x, y] = FLOOR;
                 }
                 else if (c != WALL && c != FLOOR && c != VOID)
@@ -122,7 +118,7 @@ public class DungeonMap
         }
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+    public void Draw(SpriteBatch spriteBatch, bool isCombat = false)
     {
         for (int y = 0; y < Rows; y++)
         {
@@ -133,10 +129,17 @@ public class DungeonMap
 
                 Vector2 position = new Vector2((float)x * TileSize, (float)y * TileSize);
 
-                if (cell == WALL)
+                if (cell == WALL && isCombat == false)
                 {
                     int bitmask = ComputeWallBitmask(x, y);
                     TextureRegion tile = _wallTileset.GetTile(_wallBitmaskToTile[bitmask]);
+                    tile.Draw(spriteBatch, position, Color.White);
+                }
+                else if (cell == WALL && isCombat == true)
+                {
+                    int bitmask = ComputeWallBitmask(x, y);
+                    int combatTileIndex = PickCombatWallTileIndex(bitmask);
+                    TextureRegion tile = _wallTileset.GetTile(combatTileIndex);
                     tile.Draw(spriteBatch, position, Color.White);
                 }
                 else
@@ -147,6 +150,16 @@ public class DungeonMap
                 }
             }
         }
+    }
+
+    private static int PickCombatWallTileIndex(int bitmask)
+    {
+        bool hasNorth = (bitmask & 1) != 0;
+        bool hasSouth = (bitmask & 4) != 0;
+
+        if (!hasNorth) return 22; // top cap
+        if (!hasSouth) return 29; // bottom cap
+        return 22;                // middle
     }
 
     private int ComputeWallBitmask(int x, int y)

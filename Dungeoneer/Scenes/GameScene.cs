@@ -1,14 +1,15 @@
 using Dungeoneer.GameObjects.Bases;
-using Dungeoneer.GameObjects.HelperMethods;
+using Dungeoneer.GameObjects.GameSessions;
+using Dungeoneer.GameObjects.Helpers;
 using Dungeoneer.GameObjects.Player;
 using Dungeoneer.Maps;
+using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGameGum;
 using MonoGameLibrary;
-using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
 using System.Collections.Generic;
-
 
 namespace Dungeoneer.Scenes;
 
@@ -23,61 +24,60 @@ public class GameScene : Scene
     }
 
     private PlayerCharacter _playerCharacter;
-
-    private TextureAtlas atlas { get; set; }
-
     private List<ActorBase> _actors = new();
     private List<PropBase> _props = new();
-
-    // The font to use to render normal text.
-    private SpriteFont _font;
-
-    // The font used to render the title text.
-    private SpriteFont _font5x;
-
     private DungeonMap _dungeonMap;
 
+    private GameHudUI _hud;
+
     private Vector2 _cameraPos = Vector2.Zero;
-
-    private float worldScale = 1.0f; // ex 2x
-
     private float CAMERA_SMOOTH_SPEED = 1.5f;
+    private bool _snapCamera = true;
+    const float UiTopPaddingPx = 64f * 2f;
+
+    private float worldScale = 1.0f;
 
     private GameState _state;
 
     private double _combatRemainingMs;
 
+    private GameSession _currentSession;
+    private readonly GameSession? _loadedSession;
+
+    public GameScene(GameSession? session = null)
+    {
+        _loadedSession = session;
+    }
+
     public override void LoadContent()
     {
-        // Load the font for the standard text.
-        //_font = Core.Content.Load<SpriteFont>("fonts/04B_30");
-
-        // Load the font for the title text.
-        //_font5x = Content.Load<SpriteFont>("fonts/04B_30_5x");
-
         _dungeonMap = new DungeonMap(64);
         _dungeonMap.LoadContent(Content, "Images/DungeonAtlas");
-        _dungeonMap.LoadMap(Content, "LevelFiles/Level1_w_Boss.txt");
 
-        atlas = TextureAtlas.FromFile(Content, "images/GameObjectAtlas.xml");
+        if (_loadedSession == null)
+        {
+            _dungeonMap.LoadMap(Content, "LevelFiles/Level1_w_Boss.txt");
 
-        AnimatedSprite pcSpriteIdle = atlas.CreateAnimatedSprite("slime-idle-pink-animation");
-        pcSpriteIdle.Scale = Vector2.One;
-        AnimatedSprite pcSpriteMove = atlas.CreateAnimatedSprite("slime-move-pink-animation");
-        pcSpriteMove.Scale = Vector2.One;
+            _playerCharacter = LoadEntities.CreatePlayer(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
 
-        _playerCharacter = new PlayerCharacter(
-            pcSpriteIdle,
-            pcSpriteMove,
-            _dungeonMap.PlayerStart.X,
-            _dungeonMap.PlayerStart.Y,
-            CanActorMoveTo,
-            GetBlockingActorAtWorldPos
-        );
+            _actors = LoadEntities.ParseActors(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            _props = LoadEntities.ParseProps(_dungeonMap, GameAssets.GameObjectAtlas);
+        }
+        else
+        {
+            _dungeonMap.LoadMap(Content, _loadedSession.LevelFilePath);
+
+            _cameraPos = _loadedSession.CameraPosition;
+
+            _playerCharacter = LoadEntities.CreatePlayer(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            _playerCharacter.PlayerCombatUpdate(_loadedSession);
+
+            _actors = LoadEntities.ParseActors(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            _props = LoadEntities.ParseProps(_loadedSession, GameAssets.GameObjectAtlas);
+        }
 
         _playerCharacter.BlockedByActor += (self, blocker) =>
         {
-            // blocker är en ActorBase; i ditt spel är det i praktiken ett monster om det inte är player
             if (blocker != _playerCharacter)
             {
                 _state = GameState.Combat;
@@ -85,15 +85,16 @@ public class GameScene : Scene
             }
         };
 
-        _actors = LoadEntities.ParseActors(_dungeonMap, atlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
-        _props = LoadEntities.ParseProps(_dungeonMap, atlas);
-
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props);
     }
 
     public override void Initialize()
     {
         // LoadContent is called during base.Initialize().
         base.Initialize();
+
+        GumService.Default.Root.Children.Clear();
+        _hud = new GameHudUI();
 
         //Core.ExitOnEscape = false;
     }
@@ -126,18 +127,35 @@ public class GameScene : Scene
         _playerCharacter.Update(gameTime);
 
         _cameraPos = Camera.CameraLoc(Core.GraphicsDevice.Viewport, _playerCharacter, _dungeonMap,
-                                        _cameraPos, gameTime, worldScale, CAMERA_SMOOTH_SPEED);
+                                        _cameraPos, gameTime, worldScale, CAMERA_SMOOTH_SPEED, _snapCamera, UiTopPaddingPx);
+
+        _snapCamera = false;
+
+        _playerCharacter.CalculateXpToNextLevel();
+
+        _hud.SetHp(_playerCharacter.HealthCurrent, _playerCharacter.HealthPool);
+        _hud.SetXp(_playerCharacter.CurrentXP, _playerCharacter.XPToNextLevel);
+        _hud.Update(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
     {
         Matrix cameraTransform =
-            Matrix.CreateTranslation(-_cameraPos.X, -_cameraPos.Y, 0f) *
+            Matrix.CreateTranslation(-_cameraPos.X, -_cameraPos.Y + UiTopPaddingPx, 0f) *
             Matrix.CreateScale(worldScale, worldScale, 1f);
 
+        var gd = Core.GraphicsDevice;
+        var prevScissor = gd.ScissorRectangle;
+        gd.ScissorRectangle = new Rectangle(
+            0,
+            (int)UiTopPaddingPx,
+            gd.Viewport.Width,
+            gd.Viewport.Height - (int)UiTopPaddingPx
+        );
         Core.SpriteBatch.Begin(
             samplerState: SamplerState.PointClamp,
-            transformMatrix: cameraTransform
+            transformMatrix: cameraTransform,
+            rasterizerState: new RasterizerState { ScissorTestEnable = true }
         );
 
         _dungeonMap.Draw(Core.SpriteBatch);
@@ -155,6 +173,10 @@ public class GameScene : Scene
         }
 
         Core.SpriteBatch.End();
+
+        gd.ScissorRectangle = prevScissor;
+
+        _hud.Draw();
     }
 
     private Point ToTile(Vector2 worldPos)
@@ -165,7 +187,6 @@ public class GameScene : Scene
     }
     private IEnumerable<ActorBase> EnumerateAllActors()
     {
-        // Viktigt: ta med player också
         yield return _playerCharacter;
         foreach (var actor in _actors)
             yield return actor;
@@ -211,6 +232,7 @@ public class GameScene : Scene
 
     private void StartCombat(ActorBase monster)
     {
-        Core.ChangeScene(new CombatScene(new CombatEncounter(_playerCharacter, monster, _dungeonMap, atlas)));
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props);
+        Core.ChangeScene(new CombatScene(new CombatEncounter(_playerCharacter, monster, _dungeonMap, GameAssets.GameObjectAtlas, _currentSession)));
     }
 }

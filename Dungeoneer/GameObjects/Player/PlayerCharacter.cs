@@ -1,4 +1,5 @@
 ﻿using Dungeoneer.GameObjects.Bases;
+using Dungeoneer.GameObjects.GameSessions;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary.Graphics;
 using System;
@@ -8,10 +9,15 @@ namespace Dungeoneer.GameObjects.Player;
 
 public class PlayerCharacter : ActorBase
 {
-    public override int healthPool { get; set; } = 20;
-    public override int minDamage { get; set; } = 2;
-    public override int maxDamage { get; set; } = 6;
-    public override int armor { get; set; } = 1;
+    public override string ActorName { get; protected set; } = "Player";
+    public override int HealthPool { get; set; } = 20;
+    public override int HealthCurrent { get; set; } = 20;
+    public override int MinDamage { get; set; } = 2;
+    public override int MaxDamage { get; set; } = 6;
+    public override int Armor { get; set; } = 1;
+    public int CurrentLevel { get; set; } = 1;
+    public int CurrentXP { get; set; } = 0;
+    public int XPToNextLevel { get; set; }
 
     private readonly Queue<Vector2> _inputBuffer = new(0);
 
@@ -21,20 +27,26 @@ public class PlayerCharacter : ActorBase
         float xPos,
         float yPos,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
-        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos)
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
+        int _entityId,
+        char mapKind)
+        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, '@')
     {
     }
 
     public override void Update(GameTime gameTime)
     {
-        HandleInput();
+        if (!InCombat)
+            HandleInput();
 
         base.Update(gameTime);
     }
 
     protected override Vector2? GetDesiredDirection(GameTime gameTime)
     {
+        if (InCombat)
+            return null;
+
         if (_inputBuffer.Count == 0) return null;
         return _inputBuffer.Dequeue();
     }
@@ -51,5 +63,15 @@ public class PlayerCharacter : ActorBase
         if (next != Vector2.Zero && _inputBuffer.Count == 0)
             _inputBuffer.Enqueue(next);
         else _inputBuffer.Clear();
+    }
+
+    public void PlayerCombatUpdate(GameSession session)
+    {
+        HealthCurrent = session.Player.HealthCurrent;
+    }
+
+    public void CalculateXpToNextLevel()
+    {
+        XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 15;
     }
 }

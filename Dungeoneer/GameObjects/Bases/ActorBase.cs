@@ -13,6 +13,8 @@ namespace Dungeoneer.GameObjects.Bases;
 /// </summary>
 public abstract class ActorBase
 {
+    public int EntityId { get; }
+    public abstract string ActorName { get; protected set; }
     protected AnimatedSprite IdleSprite { get; set; }
     protected AnimatedSprite MoveSprite { get; set; }
     protected AnimatedSprite ActiveSprite { get; set; }
@@ -35,17 +37,22 @@ public abstract class ActorBase
 
     public event Action<ActorBase, ActorBase>? BlockedByActor;
 
-    public abstract int healthPool { get; set; }
-    public abstract int minDamage { get; set; }
-    public abstract int maxDamage { get; set; }
-    public abstract int armor { get; set; }
+    public char MapKind { get; }
+    public bool InCombat { get; set; } = false;
+    public abstract int HealthPool { get; set; }
+    public abstract int HealthCurrent { get; set; }
+    public abstract int MinDamage { get; set; }
+    public abstract int MaxDamage { get; set; }
+    public abstract int Armor { get; set; }
 
     protected ActorBase(
         AnimatedSprite idleSprite,
         AnimatedSprite moveSprite,
         Vector2 startPosition,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
+        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+        int _entityId,
+        char mapKind)
     {
         IdleSprite = idleSprite;
         MoveSprite = moveSprite;
@@ -67,6 +74,8 @@ public abstract class ActorBase
         }
         MoveAnimRemaining = TimeSpan.Zero;
         MoveProgress01 = 1f;
+        EntityId = _entityId;
+        MapKind = mapKind;
     }
 
     public virtual void Update(GameTime gameTime)
@@ -88,10 +97,18 @@ public abstract class ActorBase
         ActiveSprite?.Update(gameTime);
     }
 
-    public virtual void Draw()
+    public virtual void Draw(float scaleFactor = 1f, bool _isCombat = false)
     {
+        if (_isCombat)
+        {
+            ActiveSprite.Scale = new Vector2(scaleFactor, scaleFactor);
+        }
         ActiveSprite?.Draw(Core.SpriteBatch, GetDrawPosition());
     }
+
+    public Vector2 SpriteDrawPosition => GetDrawPosition();
+    public Vector2 SpriteDrawExtents =>
+        ActiveSprite != null ? new Vector2(ActiveSprite.Width, ActiveSprite.Height) : Vector2.Zero;
 
     protected virtual Vector2 GetDrawPosition()
     {
@@ -179,16 +196,26 @@ public abstract class ActorBase
         }
     }
 
-    protected virtual void MoveToCombatLocation(ActorBase target)
+    public virtual void MoveToCombatLocation(ActorBase target, Viewport vp)
     {
+        Vector2 playerPos = new Vector2(vp.Width * 0.25f, vp.Height * 0.50f);
+        Vector2 monsterPos = new Vector2(vp.Width * 0.75f, vp.Height * 0.50f);
+
+        target.MoveAnimRemaining = TimeSpan.Zero;
+        target.MoveProgress01 = 1f;
+
         if (target.GetType() == typeof(PlayerCharacter))
         {
-            target.Position = new Vector2();
+            target.Position = playerPos;
+            target.To = playerPos;
+            target.From = playerPos;
             target.Heading = 1;
         }
         else
         {
-            target.Position = new Vector2();
+            target.Position = monsterPos;
+            target.To = monsterPos;
+            target.From = monsterPos;
             target.Heading = -1;
         }
     }
@@ -202,4 +229,57 @@ public abstract class ActorBase
         return Vector2.Zero;
     }
 
+    public virtual CombatActionResult Attack(ActorBase target, bool defending)
+    {
+        Random rand = new Random();
+        int Damage = 0;
+        int attackRoll = rand.Next(MinDamage, MaxDamage);
+
+        if (defending)
+        {
+            Damage = attackRoll - target.Armor;
+            if (Damage <= 0)
+            {
+                return new CombatActionResult(
+                    CombatActionType.Attack,
+                    this.EntityId,
+                    CombatActionType.Defend,
+                    target.EntityId,
+                    CombatOutcomeKind.Blocked,
+                    Damage
+                );
+            }
+
+            return new CombatActionResult(
+                CombatActionType.Attack,
+                this.EntityId,
+                CombatActionType.Defend,
+                target.EntityId,
+                CombatOutcomeKind.Hit,
+                Damage
+                );
+        }
+
+        Damage = attackRoll;
+
+        return new CombatActionResult(
+            CombatActionType.Attack,
+            this.EntityId,
+            CombatActionType.None,
+            target.EntityId,
+            CombatOutcomeKind.Hit,
+            Damage
+        );
+    }
+
+    public enum CombatActionType { Attack, Defend, None }
+    public enum CombatOutcomeKind { Hit, Blocked, Rest }
+    public sealed record CombatActionResult(
+        CombatActionType AttackerAction,
+        int ActorEntityId,
+        CombatActionType DefenderAction,
+        int TargetEntityId,
+        CombatOutcomeKind Outcome,
+        int DamageDealt
+    );
 }

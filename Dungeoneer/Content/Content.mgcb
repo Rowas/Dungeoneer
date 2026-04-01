@@ -60,6 +60,21 @@
 #begin Images/GameObjectAtlas.xml
 /copy:Images/GameObjectAtlas.xml
 
+#begin Images/GameOverBackground.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/GameOverBackground.png
+
+#begin LevelFiles/CombatScene.txt
+/copy:LevelFiles/CombatScene.txt
+
 #begin LevelFiles/Level1_w_Boss.txt
 /copy:LevelFiles/Level1_w_Boss.txt
 

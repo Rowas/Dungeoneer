@@ -7,10 +7,12 @@ namespace Dungeoneer.GameObjects.Monsters;
 
 public class Rat : ActorBase
 {
-    public override int healthPool { get; set; } = 8;
-    public override int minDamage { get; set; } = 2;
-    public override int maxDamage { get; set; } = 4;
-    public override int armor { get; set; } = 0;
+    public override string ActorName { get; protected set; } = "Rat";
+    public override int HealthPool { get; set; } = 8;
+    public override int HealthCurrent { get; set; } = 8;
+    public override int MinDamage { get; set; } = 2;
+    public override int MaxDamage { get; set; } = 4;
+    public override int Armor { get; set; } = 0;
 
     public Rat(
         AnimatedSprite spriteIdle,
@@ -18,13 +20,18 @@ public class Rat : ActorBase
         float xPos,
         float yPos,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
-        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos)
+        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+        int _entityId,
+        char mapKind)
+        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'r')
     {
 
     }
     protected override Vector2? GetDesiredDirection(GameTime gameTime)
     {
+        if (InCombat)
+            return null;
+
         Random rand = new();
 
         var direction = rand.NextDouble();
@@ -41,10 +48,5 @@ public class Rat : ActorBase
             return Vector2.UnitX; // Right
         else
             return Vector2.Zero; // Stand Still
-    }
-
-    protected override void MoveToCombatLocation(ActorBase target)
-    {
-        throw new NotImplementedException();
     }
 }

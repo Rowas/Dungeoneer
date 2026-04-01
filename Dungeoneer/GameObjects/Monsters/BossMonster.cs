@@ -8,10 +8,12 @@ namespace Dungeoneer.GameObjects.Monsters;
 
 public class BossMonster : ActorBase
 {
-    public override int healthPool { get; set; } = 50;
-    public override int minDamage { get; set; } = 5;
-    public override int maxDamage { get; set; } = 10;
-    public override int armor { get; set; } = 2;
+    public override string ActorName { get; protected set; } = "Boss Monster";
+    public override int HealthPool { get; set; } = 50;
+    public override int HealthCurrent { get; set; } = 50;
+    public override int MinDamage { get; set; } = 5;
+    public override int MaxDamage { get; set; } = 10;
+    public override int Armor { get; set; } = 2;
 
     public BossMonster(
         AnimatedSprite spriteIdle,
@@ -19,8 +21,10 @@ public class BossMonster : ActorBase
         float xPos,
         float yPos,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
-        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos)
+        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+        int _entityId,
+        char mapKind)
+        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'B')
     {
     }
     protected override Vector2? GetDesiredDirection(GameTime gameTime)
@@ -44,10 +48,5 @@ public class BossMonster : ActorBase
     protected override void UpdateSpriteFacing()
     {
         ActiveSprite.Effects = SpriteEffects.FlipHorizontally;
-    }
-
-    protected override void MoveToCombatLocation(ActorBase target)
-    {
-        throw new NotImplementedException();
     }
 }

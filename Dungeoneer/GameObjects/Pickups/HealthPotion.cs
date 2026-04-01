@@ -9,8 +9,10 @@ public class HealthPotion : PropBase
     public HealthPotion(
         Sprite sprite,
         float xPos,
-        float yPos)
-        : base(sprite, new Vector2(xPos, yPos))
+        float yPos,
+        int propId,
+        char mapKind)
+        : base(sprite, new Vector2(xPos, yPos), propId, 'P')
     {
 
     }

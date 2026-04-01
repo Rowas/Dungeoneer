@@ -9,8 +9,10 @@ public class Weapon : PropBase
     public Weapon(
         Sprite sprite,
         float xPos,
-        float yPos)
-        : base(sprite, new Vector2(xPos, yPos))
+        float yPos,
+        int propId,
+        char mapKind)
+        : base(sprite, new Vector2(xPos, yPos), propId, 'W')
     {
 
     }

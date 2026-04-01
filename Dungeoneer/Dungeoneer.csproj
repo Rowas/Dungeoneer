@@ -12,6 +12,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Gum.MonoGame" Version="2026.3.28.2" />
     <PackageReference Include="MonoGame.Extended" Version="5.3.1" />
     <PackageReference Include="MonoGame.Extended.Content.Pipeline" Version="5.3.1" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.*" />
