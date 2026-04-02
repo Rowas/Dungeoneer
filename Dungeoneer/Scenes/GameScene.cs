@@ -74,7 +74,6 @@ public class GameScene : Scene
             _cameraPos = _loadedSession.CameraPosition;
 
             _playerCharacter = LoadEntities.CreatePlayer(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
-            _playerCharacter.PlayerCombatUpdate(_loadedSession);
 
             _actors = LoadEntities.ParseActors(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
             _props = LoadEntities.ParseProps(_loadedSession, GameAssets.GameObjectAtlas);

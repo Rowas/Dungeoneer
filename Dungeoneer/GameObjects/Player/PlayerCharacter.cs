@@ -71,6 +71,7 @@ public class PlayerCharacter : ActorBase
         ApplyEquipmentBonuses(session.Player.CollectedEquipment);
         CurrentLevel = session.Player.CurrentLevel;
         CurrentXP = session.Player.CurrentXP;
+        ApplyLevelUp(session.Player);
     }
 
     public void CalculateXpToNextLevel()
@@ -100,5 +101,32 @@ public class PlayerCharacter : ActorBase
         }
 
         CollectedEquipment = collectedEquipment;
+    }
+
+    private void ApplyLevelUp(PlayerSessionState player)
+    {
+        CalculateXpToNextLevel();
+
+        if (CurrentXP < XPToNextLevel)
+            return;
+
+        CurrentXP -= XPToNextLevel;
+        CurrentLevel += 1;
+
+        CalculateXpToNextLevel();
+
+        if (CurrentXP >= XPToNextLevel)
+            ApplyLevelUp(player);
+        var rand = new Random();
+
+        HealthPool += rand.Next(1, 5);
+
+        if (rand.Next(1, 2) == 1)
+            MinDamage += rand.Next(1, 2);
+        else
+            MaxDamage += rand.Next(1, 2);
+
+        if (rand.NextDouble() > 0.75)
+            Armor += rand.Next(1, 2);
     }
 }
