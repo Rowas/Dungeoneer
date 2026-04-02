@@ -12,6 +12,12 @@ namespace Dungeoneer.Scenes;
 public class GameOverScene : Scene
 {
     private GameOverHud _gameOverHud;
+    public string _previousLevel;
+
+    public GameOverScene(string previousLevel)
+    {
+        _previousLevel = previousLevel;
+    }
 
     public override void LoadContent()
     {
@@ -25,7 +31,7 @@ public class GameOverScene : Scene
 
         GumService.Default.Root.Children.Clear();
 
-        _gameOverHud = new GameOverHud();
+        _gameOverHud = new GameOverHud(_previousLevel);
     }
 
     public override void Draw(GameTime gameTime)
@@ -57,8 +63,11 @@ public class GameOverHud : ContainerRuntime
     private AnimatedButton _restartButton;
     private AnimatedButton _mainMenuButton;
 
-    public GameOverHud()
+    private string _previousLevel;
+
+    public GameOverHud(string previousLevel)
     {
+        _previousLevel = previousLevel;
         Dock(Gum.Wireframe.Dock.Fill);
 
         this.AddToRoot();
@@ -73,7 +82,7 @@ public class GameOverHud : ContainerRuntime
         _restartButton.IsFocused = true;
         _restartButton.Click += (s, e) =>
         {
-            Core.ChangeScene(new GameScene());
+            Core.ChangeScene(new GameScene(_previousLevel));
         };
         _buttonColumn.AddChild(_restartButton);
 

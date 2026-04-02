@@ -69,9 +69,9 @@ public class DungeonMap
         _wallTileset = new Tileset(wallRegion, TileSize, TileSize);
     }
 
-    public void LoadMap(ContentManager content, string mapPath)
+    public void LoadMap(ContentManager content, string level)
     {
-        string filePath = Path.Combine(content.RootDirectory, mapPath);
+        string filePath = Path.Combine(content.RootDirectory, $"LevelFiles/{level}.txt");
         string[] lines;
 
         using (Stream stream = TitleContainer.OpenStream(filePath))

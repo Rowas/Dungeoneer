@@ -10,6 +10,7 @@ using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dungeoneer.Scenes;
 
@@ -27,6 +28,8 @@ public class GameScene : Scene
     private List<ActorBase> _actors = new();
     private List<PropBase> _props = new();
     private DungeonMap _dungeonMap;
+    private string _level;
+
 
     private GameHudUI _hud;
 
@@ -44,9 +47,10 @@ public class GameScene : Scene
     private GameSession _currentSession;
     private readonly GameSession? _loadedSession;
 
-    public GameScene(GameSession? session = null)
+    public GameScene(string level, GameSession? session = null)
     {
         _loadedSession = session;
+        _level = level;
     }
 
     public override void LoadContent()
@@ -56,7 +60,7 @@ public class GameScene : Scene
 
         if (_loadedSession == null)
         {
-            _dungeonMap.LoadMap(Content, "LevelFiles/Level1_w_Boss.txt");
+            _dungeonMap.LoadMap(Content, _level);
 
             _playerCharacter = LoadEntities.CreatePlayer(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
 
@@ -65,7 +69,7 @@ public class GameScene : Scene
         }
         else
         {
-            _dungeonMap.LoadMap(Content, _loadedSession.LevelFilePath);
+            _dungeonMap.LoadMap(Content, _loadedSession.Level);
 
             _cameraPos = _loadedSession.CameraPosition;
 
@@ -85,7 +89,7 @@ public class GameScene : Scene
             }
         };
 
-        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props);
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level);
     }
 
     public override void Initialize()
@@ -119,8 +123,28 @@ public class GameScene : Scene
             prop.Update(gameTime);
             if (prop.CanInteract && prop.TryInteract(_playerCharacter))
             {
-                //No additional logic needed here for now
-                //But this is where you would add any special behavior that should happen when the player interacts with a prop.
+
+            }
+
+            if (prop.IsCollected)
+            {
+                if (prop.MapKind == 'W')
+                {
+                    _hud.CreateInventoryItem("tier-1-sword", _hud._itemContainer);
+                }
+
+                if (prop.MapKind == 'A')
+                {
+                    _hud.CreateInventoryItem("tier-1-armor", _hud._itemContainer);
+                }
+            }
+        }
+
+        foreach (var item in _playerCharacter.CollectedEquipment)
+        {
+            if (_hud._itemContainer.Children.All(child => child.Name != item.PropName))
+            {
+                _hud.CreateInventoryItem(item.PropName, _hud._itemContainer);
             }
         }
 
@@ -232,7 +256,7 @@ public class GameScene : Scene
 
     private void StartCombat(ActorBase monster)
     {
-        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props);
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level);
         Core.ChangeScene(new CombatScene(new CombatEncounter(_playerCharacter, monster, _dungeonMap, GameAssets.GameObjectAtlas, _currentSession)));
     }
 }

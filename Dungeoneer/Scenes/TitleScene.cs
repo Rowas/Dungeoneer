@@ -75,7 +75,7 @@ public class MainMenuHud : ContainerRuntime
         _startGameButton.IsFocused = true;
         _startGameButton.Click += (s, e) =>
         {
-            Core.ChangeScene(new GameScene());
+            Core.ChangeScene(new GameScene("level1"));
         };
         _buttonColumn.AddChild(_startGameButton);
 

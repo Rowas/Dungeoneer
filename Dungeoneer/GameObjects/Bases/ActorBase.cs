@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using System;
+using System.Collections.Generic;
 
 namespace Dungeoneer.GameObjects.Bases;
 
@@ -44,6 +45,8 @@ public abstract class ActorBase
     public abstract int MinDamage { get; set; }
     public abstract int MaxDamage { get; set; }
     public abstract int Armor { get; set; }
+    public List<PropBase> CollectedEquipment { get; set; } = new();
+    public virtual int XPValue { get; set; }
 
     protected ActorBase(
         AnimatedSprite idleSprite,

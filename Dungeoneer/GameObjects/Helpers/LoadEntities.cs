@@ -196,6 +196,9 @@ public static class LoadEntities
 
         foreach (var p in session.Props)
         {
+            if (p.IsCollected)
+                continue;
+
             var prop = CreateProp(
                 mapKind: p.MapKind,
                 x: p.Position.X,

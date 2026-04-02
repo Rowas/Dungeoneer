@@ -6,10 +6,13 @@ namespace Dungeoneer.GameObjects.Bases;
 
 public abstract class PropBase
 {
+    public abstract string PropName { get; protected set; }
     public int PropId { get; }
     public char MapKind { get; }
     protected Sprite ActiveSprite { get; set; }
     public Vector2 Position { get; protected set; }
+    public virtual int DamageBoostValue { get; protected set; }
+    public virtual int ArmorBoosValue { get; protected set; }
     public bool IsCollected { get; protected set; }
 
     public virtual bool CanInteract => !IsCollected;

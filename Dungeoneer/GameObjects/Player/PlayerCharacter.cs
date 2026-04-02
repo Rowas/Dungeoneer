@@ -68,10 +68,37 @@ public class PlayerCharacter : ActorBase
     public void PlayerCombatUpdate(GameSession session)
     {
         HealthCurrent = session.Player.HealthCurrent;
+        ApplyEquipmentBonuses(session.Player.CollectedEquipment);
+        CurrentLevel = session.Player.CurrentLevel;
+        CurrentXP = session.Player.CurrentXP;
     }
 
     public void CalculateXpToNextLevel()
     {
-        XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 15;
+        if (CurrentLevel < 10)
+            XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 5;
+        if (CurrentLevel >= 10 && CurrentLevel < 20)
+            XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 10;
+        if (CurrentLevel >= 20 && CurrentLevel < 30)
+            XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 15;
+    }
+
+    private void ApplyEquipmentBonuses(List<PropBase> collectedEquipment)
+    {
+        foreach (var eq in collectedEquipment)
+        {
+            switch (eq.PropName)
+            {
+                case "Weapon-T1":
+                    MinDamage += eq.DamageBoostValue;
+                    MaxDamage += eq.DamageBoostValue;
+                    break;
+                case "Armor-T1":
+                    Armor += eq.ArmorBoosValue;
+                    break;
+            }
+        }
+
+        CollectedEquipment = collectedEquipment;
     }
 }

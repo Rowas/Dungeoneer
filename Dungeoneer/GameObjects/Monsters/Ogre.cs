@@ -14,6 +14,7 @@ public class Ogre : ActorBase
     public override int MinDamage { get; set; } = 5;
     public override int MaxDamage { get; set; } = 10;
     public override int Armor { get; set; } = 3;
+    public override int XPValue { get; set; } = 15;
 
     public Ogre(
         AnimatedSprite spriteIdle,

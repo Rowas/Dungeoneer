@@ -13,6 +13,7 @@ public class Rat : ActorBase
     public override int MinDamage { get; set; } = 2;
     public override int MaxDamage { get; set; } = 4;
     public override int Armor { get; set; } = 0;
+    public override int XPValue { get; set; } = 5;
 
     public Rat(
         AnimatedSprite spriteIdle,

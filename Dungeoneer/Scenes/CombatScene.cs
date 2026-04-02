@@ -28,9 +28,12 @@ public class CombatScene : Scene
     double actionRoll;
     CombatActionResult CombatResult { get; set; }
 
+    private string PreviousLevel { get; set; }
+
     public CombatScene(CombatEncounter encounter)
     {
         _encounter = encounter;
+        PreviousLevel = _encounter.Session.Level;
     }
 
     public override void Initialize()
@@ -45,7 +48,7 @@ public class CombatScene : Scene
     {
         _combatMap = new DungeonMap(64);
         _combatMap.LoadContent(Content, "Images/DungeonAtlas");
-        _combatMap.LoadMap(Content, "LevelFiles/CombatScene.txt");
+        _combatMap.LoadMap(Core.Content, "CombatScene");
 
         Viewport vp = Core.GraphicsDevice.Viewport;
 
@@ -87,7 +90,7 @@ public class CombatScene : Scene
 
             _encounter.Session.ApplyCombatOutcome(outcome);
 
-            Core.ChangeScene(new GameScene(_encounter.Session));
+            Core.ChangeScene(new GameScene(_encounter.Session.Level, _encounter.Session));
         }
 
         if (_hudUI.Defend == true)
@@ -164,7 +167,7 @@ public class CombatScene : Scene
 
         if (ActorToCheck.ActorName == _encounter.Player.ActorName)
         {
-            Core.ChangeScene(new GameOverScene());
+            Core.ChangeScene(new GameOverScene(PreviousLevel));
         }
         else
         {
@@ -172,11 +175,12 @@ public class CombatScene : Scene
             {
                 PlayerHealthAfter = _encounter.Player.HealthCurrent,
                 MonsterEntityId = _encounter.Monster.EntityId,
-                MonsterDefeated = true
+                MonsterDefeated = true,
+                XPGained = _encounter.Monster.XPValue,
             };
 
             _encounter.Session.ApplyCombatOutcome(outcome);
-            Core.ChangeScene(new GameScene(_encounter.Session));
+            Core.ChangeScene(new GameScene(PreviousLevel, _encounter.Session));
         }
     }
 }

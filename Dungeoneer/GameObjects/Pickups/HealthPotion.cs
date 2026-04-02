@@ -6,6 +6,8 @@ namespace Dungeoneer.GameObjects.Pickups;
 
 public class HealthPotion : PropBase
 {
+    public override string PropName { get; protected set; } = "Red Potion";
+    private int HealValue { get; } = 30;
     public HealthPotion(
         Sprite sprite,
         float xPos,
@@ -19,6 +21,7 @@ public class HealthPotion : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
+        player.HealthCurrent += HealValue;
         IsCollected = true;
     }
 }

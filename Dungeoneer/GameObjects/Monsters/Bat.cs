@@ -13,6 +13,7 @@ public class Bat : ActorBase
     public override int MinDamage { get; set; } = 1;
     public override int MaxDamage { get; set; } = 3;
     public override int Armor { get; set; } = 1;
+    public override int XPValue { get; set; } = 7;
 
     public Bat(
         AnimatedSprite spriteIdle,

@@ -17,7 +17,7 @@ public sealed class GameSession
 
     // --- Nivå ---
     /// <summary>Relativt Content Root, t.ex. LevelFiles/Level1_w_Boss.txt</summary>
-    public string LevelFilePath { get; set; } = string.Empty;
+    public string Level { get; set; } = string.Empty;
     public int TileSize { get; set; } = 64;
 
     // --- Kamera ---
@@ -43,6 +43,9 @@ public sealed class PlayerSessionState
     public Vector2 Position { get; set; }
     public int HealthCurrent { get; set; }
     public int HealthMax { get; set; }
+    public List<PropBase> CollectedEquipment { get; set; }
+    public int CurrentLevel { get; set; }
+    public int CurrentXP { get; set; }
     // Lägg till inventory, guld, osv. när det finns.
 }
 /// <summary>Motsvarar en spawnad fiende i världen.</summary>
@@ -71,6 +74,8 @@ public sealed class CombatOutcome
     /// <summary>Monster som striden gällde.</summary>
     public int MonsterEntityId { get; set; }
     public bool MonsterDefeated { get; set; }
+    public int MonsterHealthAfter { get; set; }
+    public int XPGained { get; set; }
     // Loot, xp, etc. senare.
 }
 public static class GameSessionCombatExtensions
@@ -83,7 +88,10 @@ public static class GameSessionCombatExtensions
             if (session.Monsters[i].EntityId != outcome.MonsterEntityId)
                 continue;
             if (outcome.MonsterDefeated)
+            {
                 session.Monsters[i].IsAlive = false;
+                session.Player.CurrentXP += outcome.XPGained;
+            }
             // annars: uppdatera HealthCurrent om delskada ska sparas
             return;
         }
@@ -93,18 +101,21 @@ public static class GameSessionCombatExtensions
 
 public static class GameSessionExtensions
 {
-    public static GameSession ParseGameSession(PlayerCharacter _playerCharacter, List<ActorBase> _actors, List<PropBase> _props)
+    public static GameSession ParseGameSession(PlayerCharacter _playerCharacter, List<ActorBase> _actors, List<PropBase> _props, string _level)
     {
         GameSession currentSession = new GameSession
         {
             SaveVersion = 1,
-            LevelFilePath = "LevelFiles/Level1_w_Boss.txt",
+            Level = _level,
             TileSize = 64,
             Player = new PlayerSessionState
             {
                 Position = _playerCharacter.Position,
                 HealthMax = _playerCharacter.HealthPool,
                 HealthCurrent = _playerCharacter.HealthCurrent,
+                CollectedEquipment = _playerCharacter.CollectedEquipment,
+                CurrentLevel = _playerCharacter.CurrentLevel,
+                CurrentXP = _playerCharacter.CurrentXP,
             },
             Monsters = new List<MonsterSessionState>(),
             Props = new List<PropSessionState>(),
@@ -129,7 +140,7 @@ public static class GameSessionExtensions
                 EntityId = p.PropId,
                 MapKind = p.MapKind,
                 Position = p.Position,
-                IsCollected = false,
+                IsCollected = p.IsCollected,
             })
             .ToList();
 

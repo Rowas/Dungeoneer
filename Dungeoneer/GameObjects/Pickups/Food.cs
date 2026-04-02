@@ -6,6 +6,8 @@ namespace Dungeoneer.GameObjects.Pickups;
 
 public class Food : PropBase
 {
+    public override string PropName { get; protected set; } = "Bread";
+    private int HealValue { get; } = 10;
     public Food(
         Sprite sprite,
         float xPos,
@@ -19,6 +21,7 @@ public class Food : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
+        player.HealthCurrent += HealValue;
         IsCollected = true;
     }
 }

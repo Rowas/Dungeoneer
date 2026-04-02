@@ -6,6 +6,10 @@ namespace Dungeoneer.GameObjects.Pickups;
 
 public class Armor : PropBase
 {
+    public override string PropName { get; protected set; } = "tier-1-armor";
+    public bool IsEquipped { get; set; } = false;
+    public override int ArmorBoosValue { get; protected set; } = 2;
+
     public Armor(
         Sprite sprite,
         float xPos,
@@ -19,6 +23,8 @@ public class Armor : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
+        player.CollectedEquipment.Add(this);
+        player.Armor += ArmorBoosValue;
         IsCollected = true;
     }
 }
