@@ -174,7 +174,7 @@ public class CombatHudUI : ContainerRuntime
         Vector2 size = actor.SpriteDrawExtents;
         if (size.X <= 0f || size.Y <= 0f)
             size = s_fallbackSpriteSize;
-        float centerX = topLeft.X + size.X * 0.5f;
+        float centerX = actor.SpriteDrawPosition.X + (64f * actor.CombatScale) * 0.5f;
         float gapPx = vp.Height * HpGapViewportFraction;
         label.Anchor(Gum.Wireframe.Anchor.TopLeft);
         label.XOrigin = HorizontalAlignment.Center;

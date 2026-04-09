@@ -22,6 +22,10 @@ public class HealthPotion : PropBase
     protected override void OnInteract(ActorBase player)
     {
         player.HealthCurrent += HealValue;
+
+        if (player.HealthCurrent > player.HealthPool)
+            player.HealthCurrent = player.HealthPool;
+
         IsCollected = true;
     }
 }

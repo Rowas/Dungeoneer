@@ -9,7 +9,7 @@ namespace Dungeoneer.GameObjects.Player;
 
 public class PlayerCharacter : ActorBase
 {
-    public override string ActorName { get; protected set; } = "Player";
+    public override string ActorName { get; protected set; } = "Carl";
     public override int HealthPool { get; set; } = 20;
     public override int HealthCurrent { get; set; } = 20;
     public override int MinDamage { get; set; } = 2;
@@ -17,7 +17,7 @@ public class PlayerCharacter : ActorBase
     public override int Armor { get; set; } = 1;
     public int CurrentLevel { get; set; } = 1;
     public int CurrentXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; }
+    public int XPToNextLevel { get; set; } = 15;
 
     private readonly Queue<Vector2> _inputBuffer = new(0);
 
@@ -27,7 +27,7 @@ public class PlayerCharacter : ActorBase
         float xPos,
         float yPos,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
+        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
         int _entityId,
         char mapKind)
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, '@')
@@ -38,6 +38,15 @@ public class PlayerCharacter : ActorBase
     {
         if (!InCombat)
             HandleInput();
+
+        if (InCombat && AttackMade)
+        {
+            ActiveSprite = AttackSprite;
+        }
+        else if (AttackSprite == null)
+        {
+            ActiveSprite = IdleSprite;
+        }
 
         base.Update(gameTime);
     }
@@ -68,20 +77,16 @@ public class PlayerCharacter : ActorBase
     public void PlayerCombatUpdate(GameSession session)
     {
         HealthCurrent = session.Player.HealthCurrent;
+        HealthPool = session.Player.HealthMax;
+
         ApplyEquipmentBonuses(session.Player.CollectedEquipment);
+        MinDamage = session.Player.MinDamage;
+        MaxDamage = session.Player.MaxDamage;
+        Armor = session.Player.Armor;
+
         CurrentLevel = session.Player.CurrentLevel;
         CurrentXP = session.Player.CurrentXP;
-        ApplyLevelUp(session.Player);
-    }
-
-    public void CalculateXpToNextLevel()
-    {
-        if (CurrentLevel < 10)
-            XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 5;
-        if (CurrentLevel >= 10 && CurrentLevel < 20)
-            XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 10;
-        if (CurrentLevel >= 20 && CurrentLevel < 30)
-            XPToNextLevel = (CurrentLevel + CurrentLevel + 1) * 15;
+        XPToNextLevel = session.Player.XPToNextLevel;
     }
 
     private void ApplyEquipmentBonuses(List<PropBase> collectedEquipment)
@@ -101,32 +106,5 @@ public class PlayerCharacter : ActorBase
         }
 
         CollectedEquipment = collectedEquipment;
-    }
-
-    private void ApplyLevelUp(PlayerSessionState player)
-    {
-        CalculateXpToNextLevel();
-
-        if (CurrentXP < XPToNextLevel)
-            return;
-
-        CurrentXP -= XPToNextLevel;
-        CurrentLevel += 1;
-
-        CalculateXpToNextLevel();
-
-        if (CurrentXP >= XPToNextLevel)
-            ApplyLevelUp(player);
-        var rand = new Random();
-
-        HealthPool += rand.Next(1, 5);
-
-        if (rand.Next(1, 2) == 1)
-            MinDamage += rand.Next(1, 2);
-        else
-            MaxDamage += rand.Next(1, 2);
-
-        if (rand.NextDouble() > 0.75)
-            Armor += rand.Next(1, 2);
     }
 }

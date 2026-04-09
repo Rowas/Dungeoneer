@@ -46,6 +46,10 @@ public sealed class PlayerSessionState
     public List<PropBase> CollectedEquipment { get; set; }
     public int CurrentLevel { get; set; }
     public int CurrentXP { get; set; }
+    public int XPToNextLevel { get; set; }
+    public int MinDamage { get; set; }
+    public int MaxDamage { get; set; }
+    public int Armor { get; set; }
     // Lägg till inventory, guld, osv. när det finns.
 }
 /// <summary>Motsvarar en spawnad fiende i världen.</summary>
@@ -116,6 +120,10 @@ public static class GameSessionExtensions
                 CollectedEquipment = _playerCharacter.CollectedEquipment,
                 CurrentLevel = _playerCharacter.CurrentLevel,
                 CurrentXP = _playerCharacter.CurrentXP,
+                XPToNextLevel = _playerCharacter.XPToNextLevel,
+                MinDamage = _playerCharacter.MinDamage,
+                MaxDamage = _playerCharacter.MaxDamage,
+                Armor = _playerCharacter.Armor
             },
             Monsters = new List<MonsterSessionState>(),
             Props = new List<PropSessionState>(),

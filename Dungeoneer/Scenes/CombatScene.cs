@@ -69,8 +69,8 @@ public class CombatScene : Scene
 
         _combatMap.Draw(Core.SpriteBatch, true);
 
-        _encounter.Player.Draw(2f, true);
-        _encounter.Monster.Draw(3f, true);
+        _encounter.Player.Draw(true);
+        _encounter.Monster.Draw(true);
 
         Core.SpriteBatch.End();
 
@@ -117,7 +117,6 @@ public class CombatScene : Scene
 
                 _hudUI.PrintCombatLog(CombatResult, _encounter);
             }
-            _hudUI.Defend = false;
         }
 
         if (_hudUI.Attack == true)
@@ -146,14 +145,17 @@ public class CombatScene : Scene
 
                 _hudUI.PrintCombatLog(CombatResult, _encounter);
             }
-            _hudUI.Attack = false;
         }
 
         _encounter.Player.Update(gameTime);
         _encounter.Monster.Update(gameTime);
 
         _hudUI.Sync(Core.GraphicsDevice.Viewport, _encounter, CombatResult);
+
         CombatResult = null;
+        _hudUI.Defend = false;
+        _hudUI.Attack = false;
+
         _hudUI.Update(gameTime);
     }
 
@@ -180,7 +182,7 @@ public class CombatScene : Scene
             };
 
             _encounter.Session.ApplyCombatOutcome(outcome);
-            Core.ChangeScene(new GameScene(PreviousLevel, _encounter.Session));
+            Core.ChangeScene(new LevelUpScene(PreviousLevel, _encounter.Session));
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Dungeoneer.GameObjects.Monsters;
 public class BossMonster : ActorBase
 {
     public override string ActorName { get; protected set; } = "Boss Monster";
+    public override float CombatScale { get; set; } = 3.5f;
     public override int HealthPool { get; set; } = 50;
     public override int HealthCurrent { get; set; } = 50;
     public override int MinDamage { get; set; } = 5;

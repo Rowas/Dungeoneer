@@ -12,6 +12,21 @@
     <Region name="slime-move-pink-6" x="834" y="11" width="64" height="64"/>
     <Region name="slime-move-pink-7" x="908" y="11" width="64" height="64"/>
 
+    <Region name="slime-eat-pink-1" x="0" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-2" x="64" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-3" x="128" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-4" x="192" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-5" x="256" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-6" x="320" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-7" x="384" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-8" x="448" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-9" x="512" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-10" x="576" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-11" x="640" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-12" x="704" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-13" x="768" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-14" x="832" y="277" width="64" height="64"/>
+
     <Region name="red-potion" x="268" y="82" width="64" height="64"/>
     <Region name="food-bread" x="332" y="82" width="64" height="64"/>
     <Region name="tier-1-armor" x="396" y="82" width="64" height="64"/>
@@ -56,6 +71,22 @@
       <Frame region="slime-move-pink-5"/>
       <Frame region="slime-move-pink-6"/>
       <Frame region="slime-move-pink-7"/>
+    </Animation>
+    <Animation name="slime-eat-pink-animation" delay="48">
+      <Frame region="slime-eat-pink-1"/>
+      <Frame region="slime-eat-pink-2"/>
+      <Frame region="slime-eat-pink-3"/>
+      <Frame region="slime-eat-pink-4"/>
+      <Frame region="slime-eat-pink-5"/>
+      <Frame region="slime-eat-pink-6"/>
+      <Frame region="slime-eat-pink-7"/>
+      <Frame region="slime-eat-pink-8"/>
+      <Frame region="slime-eat-pink-9"/>
+      <Frame region="slime-eat-pink-10"/>
+      <Frame region="slime-eat-pink-11"/>
+      <Frame region="slime-eat-pink-12"/>
+      <Frame region="slime-eat-pink-13"/>
+      <Frame region="slime-eat-pink-14"/>
     </Animation>
 
     <Animation name="plague-rat-idle-animation" delay="333">

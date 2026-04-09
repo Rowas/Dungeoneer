@@ -16,12 +16,17 @@ public class GameHudUI : ContainerRuntime
     private readonly string s_intentoryFormat = "Inventory:";
 
     private ContainerRuntime _topBar;
-    private ContainerRuntime _statContainer;
+    private ContainerRuntime _leftStatContainer;
+    private ContainerRuntime _rightStatsPanel;
     public ContainerRuntime _itemContainer;
+
 
     private TextRuntime _hpText;
     private TextRuntime _xpText;
     private TextRuntime _inventoryText;
+    private TextRuntime _dmgText;
+    private TextRuntime _armorText;
+    private TextRuntime _levelText;
 
     private SpriteRuntime _inventoryWeapon;
     private SpriteRuntime _inventoryArmor;
@@ -35,8 +40,8 @@ public class GameHudUI : ContainerRuntime
         _topBar = CreateTopBar();
         AddChild(_topBar);
 
-        _statContainer = StatsContainer();
-        _topBar.AddChild(_statContainer);
+        _leftStatContainer = StatsContainer("left");
+        _topBar.AddChild(_leftStatContainer);
 
         _itemContainer = ItemContainer();
         _topBar.AddChild(_itemContainer);
@@ -44,17 +49,22 @@ public class GameHudUI : ContainerRuntime
         _inventoryText = CreateInventoryText();
         _itemContainer.AddChild(_inventoryText);
 
-        _hpText = CreateHpText();
-        _statContainer.AddChild(_hpText);
+        _hpText = CreateLeftText("hp");
+        _leftStatContainer.AddChild(_hpText);
 
-        _xpText = CreateXpText();
-        _statContainer.AddChild(_xpText);
+        _xpText = CreateLeftText("xp");
+        _leftStatContainer.AddChild(_xpText);
 
-        //CreateInventoryItem("tier-1-sword", "first", _itemContainer);
-        //_inventoryArmor = CreateInventoryItem("tier-1-armor", "second");
+        _rightStatsPanel = StatsContainer("right");
+        _topBar.AddChild(_rightStatsPanel);
 
+        _levelText = CreateRightText("lvl", "LVL: 01", y: 10f);
+        _dmgText = CreateRightText("dmg", "DMG: 00-00", y: 40f);
+        _armorText = CreateRightText("arm", "ARM: 00", y: 70f);
 
-        //_itemContainer.AddChild(_inventoryArmor);
+        _rightStatsPanel.AddChild(_dmgText);
+        _rightStatsPanel.AddChild(_armorText);
+        _rightStatsPanel.AddChild(_levelText);
     }
 
     private ContainerRuntime CreateTopBar()
@@ -67,10 +77,23 @@ public class GameHudUI : ContainerRuntime
         return top;
     }
 
-    private ContainerRuntime StatsContainer()
+    private ContainerRuntime StatsContainer(string location)
     {
         var stats = new ContainerRuntime();
-        stats.Anchor(Gum.Wireframe.Anchor.TopLeft);
+        switch (location)
+        {
+            case "left":
+                stats.Anchor(Gum.Wireframe.Anchor.TopLeft);
+                stats.X = 20f;
+                break;
+            case "right":
+                stats.Anchor(Gum.Wireframe.Anchor.TopRight);
+                stats.X = -20f;
+                break;
+            default:
+                stats.Anchor(Gum.Wireframe.Anchor.TopLeft);
+                break;
+        }
 
         return stats;
     }
@@ -84,33 +107,64 @@ public class GameHudUI : ContainerRuntime
         return item;
     }
 
-    private TextRuntime CreateHpText()
+    private TextRuntime CreateLeftText(string textField)
     {
         var text = new TextRuntime();
-        text.Anchor(Gum.Wireframe.Anchor.TopLeft);
         text.WidthUnits = DimensionUnitType.RelativeToChildren;
         text.X = 20f;
-        text.Y = 10f;
         text.UseCustomFont = true;
         text.CustomFontFile = "fonts/04b_30.fnt";
         text.Color = Color.Red;
         text.FontScale = 1.20f;
-        text.Text = string.Format(s_hpFormat, 0, 0);
+
+        switch (textField)
+        {
+            case "hp":
+                text.Anchor(Gum.Wireframe.Anchor.TopLeft);
+                text.Color = Color.Red;
+                text.Text = string.Format(s_hpFormat, 0, 0);
+                text.Y = 10f;
+                break;
+            case "xp":
+                text.Anchor(Gum.Wireframe.Anchor.BottomLeft);
+                text.Color = Color.White;
+                text.Text = string.Format(s_xpFormat, 0, 0);
+                text.Y = -30f;
+                break;
+        }
+
         return text;
     }
 
-    private TextRuntime CreateXpText()
+    private TextRuntime CreateRightText(string textField, string initialText, float y)
     {
         var text = new TextRuntime();
-        text.Anchor(Gum.Wireframe.Anchor.BottomLeft);
         text.WidthUnits = DimensionUnitType.RelativeToChildren;
-        text.X = 20f;
-        text.Y = -30f;
+        text.X = -20f;
         text.UseCustomFont = true;
         text.CustomFontFile = "fonts/04b_30.fnt";
         text.Color = Color.White;
-        text.FontScale = 1.20f;
-        text.Text = string.Format(s_xpFormat, 0, 0);
+        text.FontScale = 0.75f;
+
+        switch (textField)
+        {
+            case "dmg":
+                text.Anchor(Gum.Wireframe.Anchor.TopRight);
+                text.Text = initialText;
+                text.Y = y;
+                break;
+            case "arm":
+                text.Anchor(Gum.Wireframe.Anchor.TopRight);
+                text.Text = initialText;
+                text.Y = y;
+                break;
+            case "lvl":
+                text.Anchor(Gum.Wireframe.Anchor.TopRight);
+                text.Text = initialText;
+                text.Y = y;
+                break;
+        }
+
         return text;
     }
 
@@ -172,6 +226,13 @@ public class GameHudUI : ContainerRuntime
     public void SetXp(int current, int max)
     {
         _xpText.Text = string.Format(s_xpFormat, current, max);
+    }
+
+    public void SetStats(int minDamage, int maxDamage, int armor, int level)
+    {
+        _dmgText.Text = $"DMG: {minDamage:D2}-{maxDamage:D2}";
+        _armorText.Text = $"ARM: {armor:D2}";
+        _levelText.Text = $"LVL: {level:D2}";
     }
 
     public void Update(GameTime gameTime)

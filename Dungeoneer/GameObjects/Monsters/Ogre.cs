@@ -14,7 +14,9 @@ public class Ogre : ActorBase
     public override int MinDamage { get; set; } = 5;
     public override int MaxDamage { get; set; } = 10;
     public override int Armor { get; set; } = 3;
-    public override int XPValue { get; set; } = 15;
+    public override int XPValue { get; set; } = 30;
+
+    public override float CombatScale { get; set; } = 2.5f;
 
     public Ogre(
         AnimatedSprite spriteIdle,
@@ -34,16 +36,7 @@ public class Ogre : ActorBase
 
         var direction = rand.NextDouble();
 
-        return null; // För att göra råttorna stillastående, ta bort denna rad för att låta dem röra sig
-
-        if (direction >= 0 && direction < 0.25)
-            return -Vector2.UnitY; // Up
-        else if (direction >= 0.25 && direction < 0.5)
-            return Vector2.UnitY; // Down
-        else if (direction >= 0.5 && direction < 0.75)
-            return -Vector2.UnitX; // Left
-        else
-            return Vector2.UnitX; // Right
+        return null; // För att göra Actorn stillastående, ta bort denna rad för att låta dem röra sig
     }
 
     protected override void UpdateSpriteFacing()

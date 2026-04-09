@@ -154,10 +154,9 @@ public class GameScene : Scene
 
         _snapCamera = false;
 
-        _playerCharacter.CalculateXpToNextLevel();
-
         _hud.SetHp(_playerCharacter.HealthCurrent, _playerCharacter.HealthPool);
         _hud.SetXp(_playerCharacter.CurrentXP, _playerCharacter.XPToNextLevel);
+        _hud.SetStats(_playerCharacter.MinDamage, _playerCharacter.MaxDamage, _playerCharacter.Armor, _playerCharacter.CurrentLevel);
         _hud.Update(gameTime);
     }
 

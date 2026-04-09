@@ -1,4 +1,5 @@
-﻿using Dungeoneer.GameObjects.Player;
+﻿using Dungeoneer.GameObjects.Helpers;
+using Dungeoneer.GameObjects.Player;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
@@ -16,9 +17,11 @@ public abstract class ActorBase
 {
     public int EntityId { get; }
     public abstract string ActorName { get; protected set; }
-    protected AnimatedSprite IdleSprite { get; set; }
-    protected AnimatedSprite MoveSprite { get; set; }
-    protected AnimatedSprite ActiveSprite { get; set; }
+    public AnimatedSprite IdleSprite { get; set; }
+    public AnimatedSprite MoveSprite { get; set; }
+    public AnimatedSprite ActiveSprite { get; set; }
+    public AnimatedSprite AttackSprite { get; set; }
+    public virtual float CombatScale { get; set; } = 1f;
 
     public Vector2 Position { get; protected set; }     // Aktuell tile-position i world space
     public Vector2 Direction { get; protected set; }    // Senast valda riktning
@@ -30,6 +33,8 @@ public abstract class ActorBase
     protected float MoveProgress01 { get; set; }
     protected TimeSpan MoveAnimRemaining { get; set; }
     protected TimeSpan MoveAnimDuration { get; set; }
+    protected TimeSpan AttackAnimRemaining { get; set; }
+    protected TimeSpan AttackAnimDuration { get; set; }
     public bool IsMoving => MoveAnimRemaining > TimeSpan.Zero;
     public Vector2 TargetPosition => To;
 
@@ -38,8 +43,11 @@ public abstract class ActorBase
 
     public event Action<ActorBase, ActorBase>? BlockedByActor;
 
+    private static Random rand = new Random();
+
     public char MapKind { get; }
     public bool InCombat { get; set; } = false;
+    public bool AttackMade { get; set; }
     public abstract int HealthPool { get; set; }
     public abstract int HealthCurrent { get; set; }
     public abstract int MinDamage { get; set; }
@@ -83,29 +91,32 @@ public abstract class ActorBase
 
     public virtual void Update(GameTime gameTime)
     {
-        TickMovementAnimation(gameTime);
+        TickAltAnimation(gameTime);
+        SelectActiveSprite();
 
-        // Underklass avgör NÄR/VART den vill röra sig (input, AI etc.)
-        if (CanStartNewStep())
+        if (!InCombat)
         {
-            Vector2? desiredDirection = GetDesiredDirection(gameTime);
-            if (desiredDirection.HasValue)
+            // Underklass avgör NÄR/VART den vill röra sig (input, AI etc.)
+            if (CanStartNewStep())
             {
-                TryStartStep(desiredDirection.Value);
+                Vector2? desiredDirection = GetDesiredDirection(gameTime);
+                if (desiredDirection.HasValue)
+                {
+                    TryStartStep(desiredDirection.Value);
+                }
             }
+
+            UpdateSpriteFacing();
         }
 
-        SelectActiveSprite();
-        UpdateSpriteFacing();
         ActiveSprite?.Update(gameTime);
     }
 
-    public virtual void Draw(float scaleFactor = 1f, bool _isCombat = false)
+    public virtual void Draw(bool _isCombat = false)
     {
-        if (_isCombat)
-        {
-            ActiveSprite.Scale = new Vector2(scaleFactor, scaleFactor);
-        }
+        if (ActiveSprite == null)
+            ActiveSprite = IdleSprite ?? AttackSprite;
+
         ActiveSprite?.Draw(Core.SpriteBatch, GetDrawPosition());
     }
 
@@ -158,8 +169,14 @@ public abstract class ActorBase
         return true;
     }
 
-    protected virtual void TickMovementAnimation(GameTime gameTime)
+    protected virtual void TickAltAnimation(GameTime gameTime)
     {
+        if (AttackAnimRemaining > TimeSpan.Zero && InCombat)
+        {
+            AttackAnimRemaining -= gameTime.ElapsedGameTime;
+            return;
+        }
+
         if (MoveAnimRemaining > TimeSpan.Zero)
             MoveAnimRemaining -= gameTime.ElapsedGameTime;
 
@@ -186,6 +203,19 @@ public abstract class ActorBase
 
     protected virtual void SelectActiveSprite()
     {
+        if (InCombat && AttackMade)
+        {
+            if (ActiveSprite == null)
+                ActiveSprite = IdleSprite;
+
+            ActiveSprite = (AttackAnimRemaining > TimeSpan.Zero) ? AttackSprite : IdleSprite;
+
+            if (AttackAnimRemaining <= TimeSpan.Zero)
+                AttackMade = false;
+
+            return;
+        }
+
         ActiveSprite = (MoveAnimRemaining > TimeSpan.Zero) ? MoveSprite : IdleSprite;
     }
 
@@ -213,6 +243,14 @@ public abstract class ActorBase
             target.To = playerPos;
             target.From = playerPos;
             target.Heading = 1;
+            target.CombatScale = 1f;
+
+            target.ActiveSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
+
+            target.IdleSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
+
+            target.AttackSprite = GameAssets.GameObjectAtlas.CreateAnimatedSprite("slime-eat-pink-animation");
+            target.AttackSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
         }
         else
         {
@@ -220,7 +258,13 @@ public abstract class ActorBase
             target.To = monsterPos;
             target.From = monsterPos;
             target.Heading = -1;
+
+            target.ActiveSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
+            target.IdleSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
+            //target.AttackSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
         }
+
+        UpdateSpriteFacing();
     }
 
     private static Vector2 Normalize4(Vector2 d)
@@ -234,7 +278,16 @@ public abstract class ActorBase
 
     public virtual CombatActionResult Attack(ActorBase target, bool defending)
     {
-        Random rand = new Random();
+        AttackMade = true;
+        if (AttackSprite?.Animation != null)
+        {
+            AttackAnimRemaining = new TimeSpan(AttackSprite.Animation.Delay.Ticks * AttackSprite.Animation.Frames.Count);
+        }
+        else
+        {
+            AttackAnimRemaining = TimeSpan.FromMilliseconds(300);
+        }
+
         int Damage = 0;
         int attackRoll = rand.Next(MinDamage, MaxDamage);
 
