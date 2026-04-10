@@ -21,7 +21,7 @@ public class CombatScene : Scene
 
     private DungeonMap _combatMap;
 
-    private CombatOutcome? outcome;
+    private CombatOutcome outcome;
 
     Random Rand = new();
 
@@ -182,6 +182,7 @@ public class CombatScene : Scene
             };
 
             _encounter.Session.ApplyCombatOutcome(outcome);
+
             Core.ChangeScene(new LevelUpScene(PreviousLevel, _encounter.Session));
         }
     }

@@ -14,7 +14,7 @@ public class Ogre : ActorBase
     public override int MinDamage { get; set; } = 5;
     public override int MaxDamage { get; set; } = 10;
     public override int Armor { get; set; } = 3;
-    public override int XPValue { get; set; } = 30;
+    public override int XPValue { get; set; } = 15;
 
     public override float CombatScale { get; set; } = 2.5f;
 
@@ -24,7 +24,7 @@ public class Ogre : ActorBase
         float xPos,
         float yPos,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
         int _entityId,
         char mapKind)
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'G')

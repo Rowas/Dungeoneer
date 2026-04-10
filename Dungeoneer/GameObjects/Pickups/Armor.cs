@@ -23,7 +23,7 @@ public class Armor : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
-        player.CollectedEquipment.Add(this);
+        player.CollectedItemKeys.Add(PropName);
         player.Armor += ArmorBoosValue;
         IsCollected = true;
     }

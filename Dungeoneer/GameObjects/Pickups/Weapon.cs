@@ -22,7 +22,7 @@ public class Weapon : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
-        player.CollectedEquipment.Add(this);
+        player.CollectedItemKeys.Add(PropName);
         player.MinDamage += DamageBoostValue;
         player.MaxDamage += DamageBoostValue;
         IsCollected = true;

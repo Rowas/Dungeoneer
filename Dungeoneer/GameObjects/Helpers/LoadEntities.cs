@@ -19,7 +19,7 @@ public static class LoadEntities
 
     public static PlayerCharacter CreatePlayer(DungeonMap dungeonMap,
         TextureAtlas atlas, Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
     {
         AnimatedSprite pcSpriteIdle = GameAssets.GameObjectAtlas.CreateAnimatedSprite("slime-idle-pink-animation");
         pcSpriteIdle.Scale = Vector2.One;
@@ -33,7 +33,7 @@ public static class LoadEntities
 
     public static PlayerCharacter CreatePlayer(GameSession session,
         TextureAtlas atlas, Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
     {
         AnimatedSprite pcSpriteIdle = GameAssets.GameObjectAtlas.CreateAnimatedSprite("slime-idle-pink-animation");
         pcSpriteIdle.Scale = Vector2.One;
@@ -55,7 +55,7 @@ public static class LoadEntities
 
     public static List<ActorBase> ParseActors(DungeonMap dungeonMap,
     TextureAtlas atlas, Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-    Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
+    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
     {
         var list = new List<ActorBase>();
         foreach (var entity in dungeonMap.Entities)
@@ -81,7 +81,7 @@ public static class LoadEntities
 
     public static List<ActorBase> ParseActors(GameSession session,
     TextureAtlas atlas, Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-    Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos)
+    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
     {
         var list = new List<ActorBase>();
         foreach (var m in session.Monsters)
@@ -105,18 +105,18 @@ public static class LoadEntities
         return list;
     }
 
-    private static ActorBase? CreateMonster(
+    private static ActorBase CreateMonster(
     char mapKind,
     float x,
     float y,
     int entityId,
     TextureAtlas atlas,
     Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-    Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
     int? healthCurrent,
     int? healthMax)
     {
-        ActorBase? actor = mapKind switch
+        ActorBase actor = mapKind switch
         {
             'r' => CreateRat(atlas, x, y, canMoveToWorldPos, getBlockingActorAtWorldPos, entityId),
             'b' => CreateBat(atlas, x, y, canMoveToWorldPos, getBlockingActorAtWorldPos, entityId),
@@ -133,7 +133,7 @@ public static class LoadEntities
     }
 
     private static Rat CreateRat(TextureAtlas atlas, float x, float y,
-    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase?> getBlock, int entityId)
+    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase> getBlock, int entityId)
     {
         var sprite = atlas.CreateAnimatedSprite("plague-rat-idle-animation");
         sprite.Scale = Vector2.One;
@@ -142,7 +142,7 @@ public static class LoadEntities
     }
 
     private static Bat CreateBat(TextureAtlas atlas, float x, float y,
-    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase?> getBlock, int entityId)
+    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase> getBlock, int entityId)
     {
         var sprite = atlas.CreateAnimatedSprite("evil-bat-idle-animation");
         sprite.Animation.Delay = TimeSpan.FromMilliseconds(250);
@@ -151,7 +151,7 @@ public static class LoadEntities
     }
 
     private static Ogre CreateOgre(TextureAtlas atlas, float x, float y,
-    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase?> getBlock, int entityId)
+    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase> getBlock, int entityId)
     {
         var sprite = atlas.CreateAnimatedSprite("brawny-ogre-idle-animation");
         sprite.Scale = Vector2.One;
@@ -159,7 +159,7 @@ public static class LoadEntities
     }
 
     private static BossMonster CreateBoss(TextureAtlas atlas, float x, float y,
-    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase?> getBlock, int entityId)
+    Func<ActorBase, Vector2, bool> canMove, Func<ActorBase, Vector2, ActorBase> getBlock, int entityId)
     {
         var sprite = atlas.CreateAnimatedSprite("grave-revenant-boss-idle-animation");
         sprite.Scale = Vector2.One;
@@ -197,7 +197,20 @@ public static class LoadEntities
         foreach (var p in session.Props)
         {
             if (p.IsCollected)
+            {
+                switch (p.MapKind)
+                {
+                    case 'W':
+                        session.Player.CollectedEquipment.Add(new CollectedItemState { ItemKey = "tier-1-sword" });
+                        break;
+                    case 'A':
+                        session.Player.CollectedEquipment.Add(new CollectedItemState { ItemKey = "tier-1-armor" });
+                        break;
+                    default:
+                        break;
+                }
                 continue;
+            }
 
             var prop = CreateProp(
                 mapKind: p.MapKind,
@@ -212,7 +225,7 @@ public static class LoadEntities
         return list;
     }
 
-    private static PropBase? CreateProp(char mapKind, float x, float y, int propId, TextureAtlas atlas)
+    private static PropBase CreateProp(char mapKind, float x, float y, int propId, TextureAtlas atlas)
     {
         return mapKind switch
         {

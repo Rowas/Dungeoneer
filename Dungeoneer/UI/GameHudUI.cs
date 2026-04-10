@@ -28,9 +28,6 @@ public class GameHudUI : ContainerRuntime
     private TextRuntime _armorText;
     private TextRuntime _levelText;
 
-    private SpriteRuntime _inventoryWeapon;
-    private SpriteRuntime _inventoryArmor;
-
     public GameHudUI()
     {
         Dock(Gum.Wireframe.Dock.Fill);

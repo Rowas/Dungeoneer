@@ -45,9 +45,9 @@ public class GameScene : Scene
     private double _combatRemainingMs;
 
     private GameSession _currentSession;
-    private readonly GameSession? _loadedSession;
+    private readonly GameSession _loadedSession;
 
-    public GameScene(string level, GameSession? session = null)
+    public GameScene(string level, GameSession session = null)
     {
         _loadedSession = session;
         _level = level;
@@ -73,10 +73,9 @@ public class GameScene : Scene
 
             _cameraPos = _loadedSession.CameraPosition;
 
-            _playerCharacter = LoadEntities.CreatePlayer(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
-
-            _actors = LoadEntities.ParseActors(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
             _props = LoadEntities.ParseProps(_loadedSession, GameAssets.GameObjectAtlas);
+            _actors = LoadEntities.ParseActors(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            _playerCharacter = LoadEntities.CreatePlayer(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
         }
 
         _playerCharacter.BlockedByActor += (self, blocker) =>
@@ -89,6 +88,8 @@ public class GameScene : Scene
         };
 
         _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level);
+
+        _playerCharacter.RestoreCollectedItems(_currentSession.Player.CollectedEquipment);
     }
 
     public override void Initialize()
@@ -139,11 +140,11 @@ public class GameScene : Scene
             }
         }
 
-        foreach (var item in _playerCharacter.CollectedEquipment)
+        foreach (var itemKey in _playerCharacter.CollectedItemKeys)
         {
-            if (_hud._itemContainer.Children.All(child => child.Name != item.PropName))
+            if (_hud._itemContainer.Children.All(child => child.Name != itemKey))
             {
-                _hud.CreateInventoryItem(item.PropName, _hud._itemContainer);
+                _hud.CreateInventoryItem(itemKey, _hud._itemContainer);
             }
         }
 
@@ -234,7 +235,7 @@ public class GameScene : Scene
         return true;
     }
 
-    private ActorBase? GetBlockingActorAtWorldPos(ActorBase self, Vector2 candidateWorldPos)
+    private ActorBase GetBlockingActorAtWorldPos(ActorBase self, Vector2 candidateWorldPos)
     {
         Point candidateTile = ToTile(candidateWorldPos);
 

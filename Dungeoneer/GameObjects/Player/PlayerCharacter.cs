@@ -27,7 +27,7 @@ public class PlayerCharacter : ActorBase
         float xPos,
         float yPos,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
         int _entityId,
         char mapKind)
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, '@')
@@ -79,7 +79,7 @@ public class PlayerCharacter : ActorBase
         HealthCurrent = session.Player.HealthCurrent;
         HealthPool = session.Player.HealthMax;
 
-        ApplyEquipmentBonuses(session.Player.CollectedEquipment);
+        RestoreCollectedItems(session.Player.CollectedEquipment);
         MinDamage = session.Player.MinDamage;
         MaxDamage = session.Player.MaxDamage;
         Armor = session.Player.Armor;
@@ -89,22 +89,12 @@ public class PlayerCharacter : ActorBase
         XPToNextLevel = session.Player.XPToNextLevel;
     }
 
-    private void ApplyEquipmentBonuses(List<PropBase> collectedEquipment)
+    public void RestoreCollectedItems(IEnumerable<CollectedItemState> collectedEquipment)
     {
+        CollectedItemKeys.Clear();
         foreach (var eq in collectedEquipment)
         {
-            switch (eq.PropName)
-            {
-                case "Weapon-T1":
-                    MinDamage += eq.DamageBoostValue;
-                    MaxDamage += eq.DamageBoostValue;
-                    break;
-                case "Armor-T1":
-                    Armor += eq.ArmorBoosValue;
-                    break;
-            }
+            CollectedItemKeys.Add(eq.ItemKey);
         }
-
-        CollectedEquipment = collectedEquipment;
     }
 }

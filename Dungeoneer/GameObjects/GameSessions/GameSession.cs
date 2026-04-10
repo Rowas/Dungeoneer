@@ -43,7 +43,7 @@ public sealed class PlayerSessionState
     public Vector2 Position { get; set; }
     public int HealthCurrent { get; set; }
     public int HealthMax { get; set; }
-    public List<PropBase> CollectedEquipment { get; set; }
+    public List<CollectedItemState> CollectedEquipment { get; set; } = new();
     public int CurrentLevel { get; set; }
     public int CurrentXP { get; set; }
     public int XPToNextLevel { get; set; }
@@ -71,17 +71,22 @@ public sealed class PropSessionState
     public Vector2 Position { get; set; }
     public bool IsCollected { get; set; }
 }
-/// <summary>Resultat från combat – uppdaterar session utanför ActorBase.</summary>
+
 public sealed class CombatOutcome
 {
     public int PlayerHealthAfter { get; set; }
-    /// <summary>Monster som striden gällde.</summary>
     public int MonsterEntityId { get; set; }
     public bool MonsterDefeated { get; set; }
     public int MonsterHealthAfter { get; set; }
     public int XPGained { get; set; }
     // Loot, xp, etc. senare.
 }
+
+public sealed class CollectedItemState
+{
+    public string ItemKey { get; set; } = string.Empty;
+}
+
 public static class GameSessionCombatExtensions
 {
     public static void ApplyCombatOutcome(this GameSession session, CombatOutcome outcome)
@@ -96,10 +101,8 @@ public static class GameSessionCombatExtensions
                 session.Monsters[i].IsAlive = false;
                 session.Player.CurrentXP += outcome.XPGained;
             }
-            // annars: uppdatera HealthCurrent om delskada ska sparas
             return;
         }
-        // Valfritt: logga om id inte hittades.
     }
 }
 
@@ -117,7 +120,7 @@ public static class GameSessionExtensions
                 Position = _playerCharacter.Position,
                 HealthMax = _playerCharacter.HealthPool,
                 HealthCurrent = _playerCharacter.HealthCurrent,
-                CollectedEquipment = _playerCharacter.CollectedEquipment,
+                CollectedEquipment = _playerCharacter.CollectedItemKeys.Select(key => new CollectedItemState { ItemKey = key }).ToList(),
                 CurrentLevel = _playerCharacter.CurrentLevel,
                 CurrentXP = _playerCharacter.CurrentXP,
                 XPToNextLevel = _playerCharacter.XPToNextLevel,

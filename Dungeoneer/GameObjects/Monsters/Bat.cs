@@ -13,7 +13,7 @@ public class Bat : ActorBase
     public override int MinDamage { get; set; } = 1;
     public override int MaxDamage { get; set; } = 3;
     public override int Armor { get; set; } = 1;
-    public override int XPValue { get; set; } = 15;
+    public override int XPValue { get; set; } = 7;
 
     public Bat(
         AnimatedSprite spriteIdle,
@@ -21,7 +21,7 @@ public class Bat : ActorBase
         float xPos,
         float yPos,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
         int _entityId,
         char mapKind)
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'b')

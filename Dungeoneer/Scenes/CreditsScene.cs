@@ -7,9 +7,9 @@ using MonoGameLibrary.Scenes;
 
 namespace Dungeoneer.Scenes;
 
-public class TitleScene : Scene
+public class CreditsScene : Scene
 {
-    private MainMenuHudUI _mainMenuHud;
+    private CreditsHudUI _creditsUI;
 
     public override void LoadContent()
     {
@@ -22,7 +22,7 @@ public class TitleScene : Scene
 
         GumService.Default.Root.Children.Clear();
 
-        _mainMenuHud = new MainMenuHudUI();
+        _creditsUI = new CreditsHudUI();
     }
 
     public override void Draw(GameTime gameTime)
@@ -36,11 +36,11 @@ public class TitleScene : Scene
 
         Core.SpriteBatch.End();
 
-        _mainMenuHud.Draw();
+        _creditsUI.Draw();
     }
 
     public override void Update(GameTime gameTime)
     {
-        _mainMenuHud.Update(gameTime);
+        _creditsUI.Update(gameTime);
     }
 }

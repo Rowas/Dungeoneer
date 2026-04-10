@@ -12,9 +12,6 @@ namespace Dungeoneer;
 
 public class Game1 : Core
 {
-    private GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
-
     public Game1() : base("Dungeoneer", 1920, 1080, false)
     {
 

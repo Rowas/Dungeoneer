@@ -39,9 +39,9 @@ public abstract class ActorBase
     public Vector2 TargetPosition => To;
 
     private readonly Func<ActorBase, Vector2, bool> _canMoveToWorldPos;
-    private readonly Func<ActorBase, Vector2, ActorBase?> _getBlockingActorAtWorldPos;
+    private readonly Func<ActorBase, Vector2, ActorBase> _getBlockingActorAtWorldPos;
 
-    public event Action<ActorBase, ActorBase>? BlockedByActor;
+    public event Action<ActorBase, ActorBase> BlockedByActor;
 
     private static Random rand = new Random();
 
@@ -53,7 +53,7 @@ public abstract class ActorBase
     public abstract int MinDamage { get; set; }
     public abstract int MaxDamage { get; set; }
     public abstract int Armor { get; set; }
-    public List<PropBase> CollectedEquipment { get; set; } = new();
+    public List<string> CollectedItemKeys { get; set; } = new();
     public virtual int XPValue { get; set; }
 
     protected ActorBase(
@@ -61,7 +61,7 @@ public abstract class ActorBase
         AnimatedSprite moveSprite,
         Vector2 startPosition,
         Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-        Func<ActorBase, Vector2, ActorBase?> getBlockingActorAtWorldPos,
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
         int _entityId,
         char mapKind)
     {
