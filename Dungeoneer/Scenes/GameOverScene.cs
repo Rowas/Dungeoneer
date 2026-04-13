@@ -31,6 +31,8 @@ public class GameOverScene : Scene
         GumService.Default.Root.Children.Clear();
 
         _gameOverHud = new GameOverHudUI(_previousLevel);
+
+        Core.ExitOnEscape = false;
     }
 
     public override void Draw(GameTime gameTime)

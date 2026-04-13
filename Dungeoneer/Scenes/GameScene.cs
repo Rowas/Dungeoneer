@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,8 +21,7 @@ public class GameScene : Scene
     {
         Playing,
         Paused,
-        Combat,
-        GameOver
+        Combat
     }
 
     private PlayerCharacter _playerCharacter;
@@ -29,7 +29,6 @@ public class GameScene : Scene
     private List<PropBase> _props = new();
     private DungeonMap _dungeonMap;
     private string _level;
-
 
     private GameHudUI _hud;
 
@@ -40,12 +39,26 @@ public class GameScene : Scene
 
     private float worldScale = 1.0f;
 
+    private float _saturation = 1.0f;
+    private Effect _grayscaleEffect;
+    private const float FADE_SPEED = 0.02f;
+
     private GameState _state;
 
     private double _combatRemainingMs;
 
     private GameSession _currentSession;
     private readonly GameSession _loadedSession;
+
+    private void OnResumeButtonClicked(object sender, EventArgs args)
+    {
+        _state = GameState.Playing;
+    }
+
+    private void OnQuitButtonClicked(object sender, EventArgs args)
+    {
+        Core.ChangeScene(new TitleScene());
+    }
 
     public GameScene(string level, GameSession session = null)
     {
@@ -90,6 +103,8 @@ public class GameScene : Scene
         _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level);
 
         _playerCharacter.RestoreCollectedItems(_currentSession.Player.CollectedEquipment);
+
+        _grayscaleEffect = Content.Load<Effect>("effects/grayscaleEffect");
     }
 
     public override void Initialize()
@@ -97,14 +112,72 @@ public class GameScene : Scene
         // LoadContent is called during base.Initialize().
         base.Initialize();
 
+        InitializeUI();
+
+        Core.ExitOnEscape = false;
+    }
+
+    private void InitializeUI()
+    {
+        // Clear out any previous UI element incase we came here
+        // from a different scene.
         GumService.Default.Root.Children.Clear();
+
+        // Create the game scene ui instance.
         _hud = new GameHudUI();
 
-        //Core.ExitOnEscape = false;
+        // Subscribe to the events from the game scene ui.
+        _hud.ResumeButtonClick += OnResumeButtonClicked;
+        _hud.QuitButtonClick += OnQuitButtonClicked;
+    }
+
+    private void TogglePause()
+    {
+        if (_state == GameState.Paused)
+        {
+            // We're now unpausing the game, so hide the pause panel.
+            _hud.HidePausePanel();
+
+            // And set the state back to playing.
+            _state = GameState.Playing;
+        }
+        else
+        {
+            if (_loadedSession == null)
+                _hud.ShowPausePanel(_currentSession.Level);
+            else
+                _hud.ShowPausePanel(_loadedSession.Level);
+
+            // And set the state to paused.
+            _state = GameState.Paused;
+
+            // Set the grayscale effect saturation to 1.0f
+            _saturation = 1.0f;
+        }
     }
 
     public override void Update(GameTime gameTime)
     {
+        if (_state != GameState.Playing)
+        {
+            // The game is in either a paused or game over state, so
+            // gradually decrease the saturation to create the fading grayscale.
+            _saturation = Math.Max(0.0f, _saturation - FADE_SPEED);
+        }
+
+        // If the pause button is pressed, toggle the pause state.
+        if (GameController.Pause())
+        {
+            TogglePause();
+        }
+
+        // At this point, if the game is paused, just return back early.
+        if (_state == GameState.Paused)
+        {
+            _hud.Update(gameTime);
+            return;
+        }
+
         if (_state == GameState.Combat)
         {
             _combatRemainingMs -= gameTime.ElapsedGameTime.TotalMilliseconds;

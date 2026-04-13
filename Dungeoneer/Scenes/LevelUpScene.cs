@@ -49,6 +49,8 @@ public class LevelUpScene : Scene
         }
 
         _levelUpUI = new LevelUpHudUI(_loadedSession, leveled);
+
+        Core.ExitOnEscape = false;
     }
 
     public override void Draw(GameTime gameTime)

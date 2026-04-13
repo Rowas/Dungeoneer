@@ -12,6 +12,8 @@
     <Region name="slime-move-pink-6" x="834" y="11" width="64" height="64"/>
     <Region name="slime-move-pink-7" x="908" y="11" width="64" height="64"/>
 
+    <Region name="panel-background" x="977" y="109" width="15" height="15"/>
+
     <Region name="slime-eat-pink-1" x="0" y="277" width="64" height="64"/>
     <Region name="slime-eat-pink-2" x="64" y="277" width="64" height="64"/>
     <Region name="slime-eat-pink-3" x="128" y="277" width="64" height="64"/>

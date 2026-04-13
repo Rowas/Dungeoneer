@@ -43,6 +43,8 @@ public class CombatScene : Scene
         GumService.Default.Root.Children.Clear();
 
         _hudUI = new CombatHudUI();
+
+        Core.ExitOnEscape = false;
     }
     public override void LoadContent()
     {

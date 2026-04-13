@@ -23,6 +23,8 @@ public class TitleScene : Scene
         GumService.Default.Root.Children.Clear();
 
         _mainMenuHud = new MainMenuHudUI();
+
+        Core.ExitOnEscape = false;
     }
 
     public override void Draw(GameTime gameTime)

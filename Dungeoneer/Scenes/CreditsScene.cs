@@ -23,6 +23,8 @@ public class CreditsScene : Scene
         GumService.Default.Root.Children.Clear();
 
         _creditsUI = new CreditsHudUI();
+
+        Core.ExitOnEscape = false;
     }
 
     public override void Draw(GameTime gameTime)

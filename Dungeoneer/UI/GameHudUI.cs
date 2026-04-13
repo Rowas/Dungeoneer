@@ -1,9 +1,14 @@
 ﻿using Dungeoneer.GameObjects.Helpers;
 using Gum.DataTypes;
+using Gum.Forms.Controls;
+using Gum.Managers;
 using Microsoft.Xna.Framework;
 using MonoGameGum;
 using MonoGameGum.GueDeriving;
+using MonoGameLibrary.Graphics;
+using System;
 using System.Linq;
+
 
 namespace Dungeoneer.UI;
 
@@ -20,6 +25,11 @@ public class GameHudUI : ContainerRuntime
     private ContainerRuntime _rightStatsPanel;
     public ContainerRuntime _itemContainer;
 
+    private Panel _pausePanel;
+    private AnimatedButton _resumeButton;
+
+    public event EventHandler ResumeButtonClick;
+    public event EventHandler QuitButtonClick;
 
     private TextRuntime _hpText;
     private TextRuntime _xpText;
@@ -62,6 +72,9 @@ public class GameHudUI : ContainerRuntime
         _rightStatsPanel.AddChild(_dmgText);
         _rightStatsPanel.AddChild(_armorText);
         _rightStatsPanel.AddChild(_levelText);
+
+        _pausePanel = CreatePausePanel(GameAssets.GameObjectAtlas);
+        AddChild(_pausePanel.Visual);
     }
 
     private ContainerRuntime CreateTopBar()
@@ -230,6 +243,93 @@ public class GameHudUI : ContainerRuntime
         _dmgText.Text = $"DMG: {minDamage:D2}-{maxDamage:D2}";
         _armorText.Text = $"ARM: {armor:D2}";
         _levelText.Text = $"LVL: {level:D2}";
+    }
+
+    private Panel CreatePausePanel(TextureAtlas atlas)
+    {
+        Panel panel = new Panel();
+        panel.Anchor(Gum.Wireframe.Anchor.Center);
+        panel.WidthUnits = DimensionUnitType.Absolute;
+        panel.HeightUnits = DimensionUnitType.Absolute;
+        panel.Width = GumService.Default.CanvasWidth * 0.25f;
+        panel.Height = GumService.Default.CanvasHeight * 0.25f;
+        panel.IsVisible = false;
+
+        TextureRegion backgroundRegion = atlas.GetRegion("panel-background");
+
+        NineSliceRuntime background = new NineSliceRuntime();
+        background.Dock(Gum.Wireframe.Dock.Fill);
+        background.Texture = backgroundRegion.Texture;
+        background.TextureAddress = TextureAddress.Custom;
+        background.TextureHeight = backgroundRegion.Height;
+        background.TextureWidth = backgroundRegion.Width;
+        background.TextureTop = backgroundRegion.SourceRectangle.Top;
+        background.TextureLeft = backgroundRegion.SourceRectangle.Left;
+        panel.AddChild(background);
+
+        TextRuntime text = new TextRuntime();
+        text.Text = "PAUSED";
+        text.UseCustomFont = true;
+        text.CustomFontFile = "fonts/04b_30.fnt";
+        text.FontScale = 1.0f;
+        text.Anchor(Gum.Wireframe.Anchor.Top);
+        text.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        text.Y = 5.0f;
+        panel.AddChild(text);
+
+        _resumeButton = new AnimatedButton(atlas);
+        _resumeButton.Text = "RESUME";
+        _resumeButton.Anchor(Gum.Wireframe.Anchor.BottomLeft);
+        _resumeButton.X = 9.0f;
+        _resumeButton.Y = -9.0f;
+
+        _resumeButton.Click += OnResumeButtonClicked;
+
+        panel.AddChild(_resumeButton);
+
+        AnimatedButton quitButton = new AnimatedButton(atlas);
+        quitButton.Text = "QUIT";
+        quitButton.Anchor(Gum.Wireframe.Anchor.BottomRight);
+        quitButton.X = -9.0f;
+        quitButton.Y = -9.0f;
+
+        quitButton.Click += OnQuitButtonClicked;
+
+        panel.AddChild(quitButton);
+
+        return panel;
+    }
+
+    public void ShowPausePanel(string currentLevel)
+    {
+        _pausePanel.IsVisible = true;
+
+        _resumeButton.IsFocused = true;
+    }
+
+    public void HidePausePanel()
+    {
+        _pausePanel.IsVisible = false;
+    }
+
+    private void OnResumeButtonClicked(object sender, EventArgs args)
+    {
+        HidePausePanel();
+
+        if (ResumeButtonClick != null)
+        {
+            ResumeButtonClick(sender, args);
+        }
+    }
+
+    private void OnQuitButtonClicked(object sender, EventArgs args)
+    {
+        HidePausePanel();
+
+        if (QuitButtonClick != null)
+        {
+            QuitButtonClick(sender, args);
+        }
     }
 
     public void Update(GameTime gameTime)
