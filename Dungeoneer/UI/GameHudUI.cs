@@ -26,10 +26,13 @@ public class GameHudUI : ContainerRuntime
     public ContainerRuntime _itemContainer;
 
     private Panel _pausePanel;
+
     private AnimatedButton _resumeButton;
 
     public event EventHandler ResumeButtonClick;
     public event EventHandler QuitButtonClick;
+
+    public event EventHandler SaveLoadClick;
 
     private TextRuntime _hpText;
     private TextRuntime _xpText;
@@ -204,15 +207,12 @@ public class GameHudUI : ContainerRuntime
         icon.Texture = region.Texture;
         icon.TextureAddress = Gum.Managers.TextureAddress.Custom;
 
-        // Pixel-rect (int)
         icon.TextureLeft = region.SourceRectangle.X;
         icon.TextureTop = region.SourceRectangle.Y;
 
-        // De här två heter oftast så här i Gum när Right/Bottom saknas:
         icon.TextureWidth = region.SourceRectangle.Width;
         icon.TextureHeight = region.SourceRectangle.Height;
 
-        // storlek på UI-elementet
         icon.WidthUnits = DimensionUnitType.Absolute;
         icon.HeightUnits = DimensionUnitType.Absolute;
         icon.Width = region.SourceRectangle.Width;
@@ -279,19 +279,28 @@ public class GameHudUI : ContainerRuntime
 
         _resumeButton = new AnimatedButton(atlas);
         _resumeButton.Text = "RESUME";
-        _resumeButton.Anchor(Gum.Wireframe.Anchor.BottomLeft);
-        _resumeButton.X = 9.0f;
-        _resumeButton.Y = -9.0f;
-
+        _resumeButton.Anchor(Gum.Wireframe.Anchor.Top);
+        _resumeButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _resumeButton.Y = 20.0f;
         _resumeButton.Click += OnResumeButtonClicked;
 
         panel.AddChild(_resumeButton);
 
+        AnimatedButton saveGameButton = new AnimatedButton(atlas);
+        saveGameButton.Text = "SAVE/LOAD GAME";
+        saveGameButton.Anchor(Gum.Wireframe.Anchor.Top);
+        saveGameButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        saveGameButton.Y = 35.0f;
+
+        saveGameButton.Click += OnSaveLoadButtonClicked;
+
+        panel.AddChild(saveGameButton);
+
         AnimatedButton quitButton = new AnimatedButton(atlas);
         quitButton.Text = "QUIT";
-        quitButton.Anchor(Gum.Wireframe.Anchor.BottomRight);
-        quitButton.X = -9.0f;
-        quitButton.Y = -9.0f;
+        quitButton.Anchor(Gum.Wireframe.Anchor.Top);
+        quitButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        quitButton.Y = 50.0f;
 
         quitButton.Click += OnQuitButtonClicked;
 
@@ -329,6 +338,15 @@ public class GameHudUI : ContainerRuntime
         if (QuitButtonClick != null)
         {
             QuitButtonClick(sender, args);
+        }
+    }
+
+    private void OnSaveLoadButtonClicked(object sender, EventArgs args)
+    {
+        HidePausePanel();
+        if (SaveLoadClick != null)
+        {
+            SaveLoadClick(sender, args);
         }
     }
 

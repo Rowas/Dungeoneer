@@ -14,6 +14,7 @@ public class MainMenuHudUI : ContainerRuntime
     private AnimatedButton _startGameButton;
     private AnimatedButton _quitGameButton;
     private AnimatedButton _creditsButton;
+    private AnimatedButton _saveLoadGameButton;
 
     public MainMenuHudUI()
     {
@@ -35,8 +36,16 @@ public class MainMenuHudUI : ContainerRuntime
         };
         _buttonColumn.AddChild(_startGameButton);
 
+        _saveLoadGameButton = CreateButton("Load Game", Gum.Wireframe.Anchor.Center);
+        _saveLoadGameButton.Y = 25f;
+        _saveLoadGameButton.Click += (s, e) =>
+        {
+            Core.ChangeScene(new SaveLoadScene());
+        };
+        _buttonColumn.AddChild(_saveLoadGameButton);
+
         _creditsButton = CreateButton("Credits", Gum.Wireframe.Anchor.Center);
-        _creditsButton.Y = 25f;
+        _creditsButton.Y = 75f;
         _creditsButton.Click += (s, e) =>
         {
             Core.ChangeScene(new CreditsScene());
@@ -44,7 +53,7 @@ public class MainMenuHudUI : ContainerRuntime
         _buttonColumn.AddChild(_creditsButton);
 
         _quitGameButton = CreateButton("Quit Game", Gum.Wireframe.Anchor.Center);
-        _quitGameButton.Y = 75f;
+        _quitGameButton.Y = 125f;
         _quitGameButton.Click += (s, e) =>
         {
             Core.Instance.Exit();

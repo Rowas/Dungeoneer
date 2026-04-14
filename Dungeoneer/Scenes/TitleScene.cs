@@ -31,9 +31,6 @@ public class TitleScene : Scene
     {
         Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
 
-        var vp = Core.GraphicsDevice.Viewport;
-        var dst = new Rectangle(0, 0, vp.Width, vp.Height);
-
         Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
         Core.SpriteBatch.End();

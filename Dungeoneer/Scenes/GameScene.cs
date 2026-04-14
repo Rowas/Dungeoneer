@@ -45,8 +45,6 @@ public class GameScene : Scene
 
     private GameState _state;
 
-    private double _combatRemainingMs;
-
     private GameSession _currentSession;
     private readonly GameSession _loadedSession;
 
@@ -58,6 +56,11 @@ public class GameScene : Scene
     private void OnQuitButtonClicked(object sender, EventArgs args)
     {
         Core.ChangeScene(new TitleScene());
+    }
+
+    private void OnSaveLoadClicked(object sender, EventArgs args)
+    {
+        Core.ChangeScene(new SaveLoadScene(true, _currentSession));
     }
 
     public GameScene(string level, GameSession session = null)
@@ -129,6 +132,8 @@ public class GameScene : Scene
         // Subscribe to the events from the game scene ui.
         _hud.ResumeButtonClick += OnResumeButtonClicked;
         _hud.QuitButtonClick += OnQuitButtonClicked;
+
+        _hud.SaveLoadClick += OnSaveLoadClicked;
     }
 
     private void TogglePause()
@@ -175,14 +180,6 @@ public class GameScene : Scene
         if (_state == GameState.Paused)
         {
             _hud.Update(gameTime);
-            return;
-        }
-
-        if (_state == GameState.Combat)
-        {
-            _combatRemainingMs -= gameTime.ElapsedGameTime.TotalMilliseconds;
-            if (_combatRemainingMs <= 0)
-                _state = GameState.Playing;
             return;
         }
 
