@@ -34,6 +34,7 @@
     <Region name="tier-1-armor" x="396" y="82" width="64" height="64"/>
     <Region name="tier-1-sword" x="460" y="82" width="64" height="64"/>
     <Region name="xp-icon" x="525" y="82" width="64" height="64"/>
+    <Region name="exit-stairs" x="781" y="146" width="64" height="64"/>
 
     <Region name="focused-button-1" x="590" y="82" width="128" height="64" />
     <Region name="focused-button-2" x="720" y="82" width="128" height="64" />

@@ -263,17 +263,26 @@ public class CombatHudUI : ContainerRuntime
 
     private void HandleFlee(object sender, EventArgs e)
     {
+        if (IsAttackMade)
+            return;
+
         Flee = true;
     }
 
 
     private void HandleDefend(object sender, EventArgs e)
     {
+        if (IsAttackMade)
+            return;
+
         Defend = true;
     }
 
     private void HandleAttack(object sender, EventArgs e)
     {
+        if (IsAttackMade)
+            return;
+
         Attack = true;
     }
 

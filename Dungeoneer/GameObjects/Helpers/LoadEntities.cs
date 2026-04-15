@@ -233,6 +233,7 @@ public static class LoadEntities
             'F' => CreateFood(atlas, x, y, propId),
             'A' => CreateArmor(atlas, x, y, propId),
             'W' => CreateWeapon(atlas, x, y, propId),
+            'E' => CreateExitStairs(atlas, x, y, propId),
             _ => null
         };
     }
@@ -263,5 +264,12 @@ public static class LoadEntities
         var sprite = atlas.CreateSprite("tier-1-sword");
         sprite.Scale = Vector2.One;
         return new Weapon(sprite, x, y, propId, 'W');
+    }
+
+    private static ExitStairs CreateExitStairs(TextureAtlas atlas, float x, float y, int propId)
+    {
+        var sprite = atlas.CreateSprite("exit-stairs");
+        sprite.Scale = Vector2.One;
+        return new ExitStairs(sprite, x, y, propId, 'E');
     }
 }
