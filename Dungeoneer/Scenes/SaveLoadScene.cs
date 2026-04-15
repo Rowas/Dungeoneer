@@ -14,13 +14,13 @@ public class SaveLoadScene : Scene
 {
     private SaveLoadHudUI _saveLoadHud;
     private readonly bool _activeGame;
-    private readonly GameSession _currentSession;
+    private GameSession _currentSession;
     private SaveGameService _saveLoadService = new();
 
-    public SaveLoadScene(bool activeGame = false, GameSession currrentSession = null)
+    public SaveLoadScene(bool activeGame = false, GameSession currentSession = null)
     {
         _activeGame = activeGame;
-        _currentSession = currrentSession;
+        _currentSession = currentSession;
     }
 
     public override void LoadContent()
@@ -38,8 +38,24 @@ public class SaveLoadScene : Scene
 
         _saveLoadHud.ActiveGameBack += OnActiveGameBackClicked;
         _saveLoadHud.NoActiveGameBack += OnNoActiveGameBackClicked;
+        _saveLoadHud.GameSelectionButton += GameSelectionButtonclicked;
 
         Core.ExitOnEscape = false;
+    }
+
+    private void GameSelectionButtonclicked(object sender, (string, string) e)
+    {
+        if (e.Item2 == "save")
+        {
+            // Handle save game logic here
+            _saveLoadService.SaveGame(_currentSession, e.Item1);
+        }
+        else if (e.Item2 == "load")
+        {
+            // Handle load game logic here
+            _currentSession = _saveLoadService.LoadGame(e.Item1);
+            Core.ChangeScene(new GameScene(_currentSession.Level, _currentSession));
+        }
     }
 
     public override void Draw(GameTime gameTime)
@@ -60,10 +76,6 @@ public class SaveLoadScene : Scene
 
     private void OnActiveGameBackClicked(object sender, EventArgs args)
     {
-        //if (_currentSession != null)
-        //{
-        //    _saveLoadService.SaveGame(_currentSession);
-        //}
         Core.ChangeScene(new GameScene(_currentSession.Level, _currentSession));
     }
 

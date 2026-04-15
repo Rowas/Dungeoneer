@@ -27,7 +27,7 @@ public class SaveGameService
         File.WriteAllText(filePath, json);
     }
 
-    public GameSession Load(string saveFileName = "savegame")
+    public GameSession LoadGame(string saveFileName = "savegame")
     {
         var dir = Path.Combine(AppContext.BaseDirectory, "savegames");
         Directory.CreateDirectory(dir);

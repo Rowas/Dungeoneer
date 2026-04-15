@@ -23,13 +23,18 @@ public class SaveLoadHudUI : ContainerRuntime
 
     private AnimatedButton _backButton;
 
-    private AnimatedButton _saveSlotButton;
+    private AnimatedButton _saveSlotButton1;
+    private AnimatedButton _saveSlotButton2;
+    private AnimatedButton _saveSlotButton3;
     private AnimatedButton _returnButton;
 
     public event EventHandler ActiveGameBack;
     public event EventHandler NoActiveGameBack;
 
-    private bool IsGameActive;
+    public event EventHandler<(string, string)> GameSelectionButton;
+
+    private bool IsGameActive = false;
+    private bool IsSavingSelected;
 
     private Panel _saveGamesPanel;
     private TextRuntime _panelText;
@@ -58,11 +63,13 @@ public class SaveLoadHudUI : ContainerRuntime
             _loadGameButton.IsEnabled = false;
             _backButton.IsEnabled = false;
 
+            IsSavingSelected = false;
             _panelText.Text = "Select a slot to load your game:";
             _saveGamesPanel.IsVisible = true;
             _returnButton.IsFocused = true;
         };
         _buttonColumn.AddChild(_loadGameButton);
+
 
         _saveGameButton = CreateButton("Save Game", Gum.Wireframe.Anchor.Center);
         _saveGameButton.Y = 25f;
@@ -72,11 +79,13 @@ public class SaveLoadHudUI : ContainerRuntime
             _loadGameButton.IsEnabled = false;
             _backButton.IsEnabled = false;
 
+            IsSavingSelected = true;
             _panelText.Text = "Select a slot to save your game:";
             _saveGamesPanel.IsVisible = true;
             _returnButton.IsFocused = true;
         };
         _buttonColumn.AddChild(_saveGameButton);
+
 
         _backButton = CreateButton("Back", Gum.Wireframe.Anchor.Center);
         _backButton.Y = 75f;
@@ -88,7 +97,7 @@ public class SaveLoadHudUI : ContainerRuntime
         AddChild(_saveGamesPanel.Visual);
 
         if (ActiveGame == false)
-            _saveGamesPanel.IsVisible = false;
+            _saveGameButton.IsVisible = false;
     }
 
     private Panel CreateSaveLoadPanel(TextureAtlas atlas)
@@ -134,10 +143,28 @@ public class SaveLoadHudUI : ContainerRuntime
             saveSlotText.YUnits = Gum.Converters.GeneralUnitType.Percentage;
             saveSlotText.Y = 25.0f + (i * 20.0f);
 
-            _saveSlotButton = CreateButton("Select", Gum.Wireframe.Anchor.Center);
-            _saveSlotButton.Y = 25.0f + (i * 20.0f);
+            switch (i)
+            {
+                case 0:
+                    _saveSlotButton1 = CreateButton("Select", Gum.Wireframe.Anchor.Center);
+                    _saveSlotButton1.Y = 25.0f + (i * 20.0f);
+                    _saveSlotButton1.Click += (sender, args) => OnGameSelectionButtonClicked("slot1", sender, args);
+                    saveSlotText.AddChild(_saveSlotButton1);
+                    break;
+                case 1:
+                    _saveSlotButton2 = CreateButton("Select", Gum.Wireframe.Anchor.Center);
+                    _saveSlotButton2.Y = 25.0f + (i * 20.0f);
+                    _saveSlotButton2.Click += (sender, args) => OnGameSelectionButtonClicked("slot2", sender, args);
+                    saveSlotText.AddChild(_saveSlotButton2);
+                    break;
+                case 2:
+                    _saveSlotButton3 = CreateButton("Select", Gum.Wireframe.Anchor.Center);
+                    _saveSlotButton3.Y = 25.0f + (i * 20.0f);
+                    _saveSlotButton3.Click += (sender, args) => OnGameSelectionButtonClicked("slot3", sender, args);
+                    saveSlotText.AddChild(_saveSlotButton3);
+                    break;
+            }
 
-            saveSlotText.AddChild(_saveSlotButton);
             panel.AddChild(saveSlotText);
         }
 
@@ -174,6 +201,19 @@ public class SaveLoadHudUI : ContainerRuntime
         button.Anchor(location);
 
         return button;
+    }
+
+    private void OnGameSelectionButtonClicked(string e, object sender, EventArgs args)
+    {
+        if (IsSavingSelected)
+        {
+            GameSelectionButton?.Invoke(this, (e, "save"));
+            OnReturnButtonClicked(sender, args);
+        }
+        else
+        {
+            GameSelectionButton?.Invoke(this, (e, "load"));
+        }
     }
 
     private void OnBackButtonClicked(object sender, EventArgs args)

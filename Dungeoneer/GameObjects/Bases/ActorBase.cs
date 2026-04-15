@@ -36,6 +36,7 @@ public abstract class ActorBase
     protected TimeSpan AttackAnimRemaining { get; set; }
     protected TimeSpan AttackAnimDuration { get; set; }
     public bool IsMoving => MoveAnimRemaining > TimeSpan.Zero;
+    public bool IsAttacking => AttackAnimRemaining > TimeSpan.Zero;
     public Vector2 TargetPosition => To;
 
     private readonly Func<ActorBase, Vector2, bool> _canMoveToWorldPos;
@@ -290,10 +291,12 @@ public abstract class ActorBase
 
         int Damage = 0;
         int attackRoll = rand.Next(MinDamage, MaxDamage);
+        float defenseModifier = defending ? 0.5f : 1f;
 
         if (defending)
         {
-            Damage = attackRoll - target.Armor;
+            Damage = (int)Math.Round((attackRoll - target.Armor) * defenseModifier);
+
             if (Damage <= 0)
             {
                 return new CombatActionResult(

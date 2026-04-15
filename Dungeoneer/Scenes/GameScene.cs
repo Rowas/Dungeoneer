@@ -323,6 +323,11 @@ public class GameScene : Scene
         return null;
     }
 
+    public bool IsAttackAnimationPlaying()
+    {
+        return _playerCharacter.AttackMade;
+    }
+
     private void StartCombat(ActorBase monster)
     {
         _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level);

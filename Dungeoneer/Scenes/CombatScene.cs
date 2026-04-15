@@ -102,9 +102,8 @@ public class CombatScene : Scene
             {
                 CombatResult = _encounter.Monster.Attack(_encounter.Player, true);
 
-                GetCombatOutcome(_encounter.Player, CombatResult);
 
-                _hudUI.PrintCombatLog(CombatResult, _encounter);
+                GetCombatOutcome(_encounter.Player, CombatResult);
             }
             else
             {
@@ -116,9 +115,9 @@ public class CombatScene : Scene
                     CombatOutcomeKind.Rest,
                     0
                 );
-
-                _hudUI.PrintCombatLog(CombatResult, _encounter);
             }
+
+            _hudUI.PrintCombatLog(CombatResult, _encounter);
         }
 
         if (_hudUI.Attack == true)
@@ -130,13 +129,10 @@ public class CombatScene : Scene
                 CombatResult = _encounter.Player.Attack(_encounter.Monster, true);
 
                 GetCombatOutcome(_encounter.Monster, CombatResult);
-
-                _hudUI.PrintCombatLog(CombatResult, _encounter);
             }
             else
             {
                 CombatResult = _encounter.Player.Attack(_encounter.Monster, false);
-
                 GetCombatOutcome(_encounter.Monster, CombatResult);
 
                 _hudUI.PrintCombatLog(CombatResult, _encounter);
@@ -144,9 +140,9 @@ public class CombatScene : Scene
                 CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
 
                 GetCombatOutcome(_encounter.Player, CombatResult);
-
-                _hudUI.PrintCombatLog(CombatResult, _encounter);
             }
+
+            _hudUI.PrintCombatLog(CombatResult, _encounter);
         }
 
         _encounter.Player.Update(gameTime);
@@ -158,6 +154,7 @@ public class CombatScene : Scene
         _hudUI.Defend = false;
         _hudUI.Attack = false;
 
+        _hudUI.IsAttackMade = _encounter.Player.IsAttacking;
         _hudUI.Update(gameTime);
     }
 

@@ -1,10 +1,13 @@
 ﻿using Dungeoneer.GameObjects.Bases;
 using Dungeoneer.GameObjects.Helpers;
 using Gum.DataTypes;
+using Gum.Forms.Controls;
+using Gum.Managers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameGum;
 using MonoGameGum.GueDeriving;
+using MonoGameLibrary.Graphics;
 using RenderingLibrary.Graphics;
 using System;
 using static Dungeoneer.GameObjects.Bases.ActorBase;
@@ -25,12 +28,16 @@ public class CombatHudUI : ContainerRuntime
     private TextRuntime _combatLog1;
     private TextRuntime _combatLog2;
 
+    private Panel _combatCommandsPanel;
+
     private bool _isFirstUpdate = true;
 
     private const float HpGapViewportFraction = 0.075f;
     private readonly Vector2 s_fallbackSpriteSize = new(64f, 64f);
 
     private readonly string s_hpFormat = "HP: {0:D2}/{1:D2}";
+
+    public bool IsAttackMade { get; set; }
 
     public bool Flee { get; set; } = false;
     public bool Attack { get; set; } = false;
@@ -75,17 +82,21 @@ public class CombatHudUI : ContainerRuntime
         LogStack.AddChild(_combatLog2);
 
         _buttonColumn = CreateButtonColumn();
-        _buttonColumn.Anchor(Gum.Wireframe.Anchor.Bottom);
-        _buttonColumn.Y = 0f;
+        _buttonColumn.Anchor(Gum.Wireframe.Anchor.Center);
         controlsStack.AddChild(_buttonColumn);
 
+        _combatCommandsPanel = CreateCommandPanel(GameAssets.GameObjectAtlas);
+        _combatCommandsPanel.AddChild(_buttonColumn);
+        controlsStack.AddChild(_combatCommandsPanel.Visual);
 
         // Attack-Button
         _attackButton = new AnimatedButton(GameAssets.GameObjectAtlas);
         _attackButton.Text = "Attack!";
         _attackButton.Click += HandleAttack;
-        _attackButton.Anchor(Gum.Wireframe.Anchor.Top);
+        _attackButton.Anchor(Gum.Wireframe.Anchor.Center);
         _attackButton.IsFocused = true;
+        _attackButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _attackButton.Y = 25;
 
         _buttonColumn.AddChild(_attackButton);
 
@@ -94,6 +105,8 @@ public class CombatHudUI : ContainerRuntime
         _defendButton.Text = "Defend!";
         _defendButton.Click += HandleDefend;
         _defendButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _defendButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _defendButton.Y = 50;
 
         _buttonColumn.AddChild(_defendButton);
 
@@ -101,9 +114,36 @@ public class CombatHudUI : ContainerRuntime
         _fleeButton = new AnimatedButton(GameAssets.GameObjectAtlas);
         _fleeButton.Text = "Flee!";
         _fleeButton.Click += HandleFlee;
-        _fleeButton.Anchor(Gum.Wireframe.Anchor.Bottom);
+        _fleeButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _fleeButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _fleeButton.Y = 75;
 
         _buttonColumn.AddChild(_fleeButton);
+    }
+
+    private Panel CreateCommandPanel(TextureAtlas atlas)
+    {
+        Panel panel = new Panel();
+        panel.Anchor(Gum.Wireframe.Anchor.Center);
+        panel.WidthUnits = DimensionUnitType.Absolute;
+        panel.HeightUnits = DimensionUnitType.Absolute;
+        panel.Width = GumService.Default.CanvasWidth * 0.15f;
+        panel.Height = GumService.Default.CanvasHeight * 0.20f;
+        panel.IsVisible = false;
+
+        TextureRegion backgroundRegion = atlas.GetRegion("panel-background");
+
+        NineSliceRuntime background = new NineSliceRuntime();
+        background.Dock(Gum.Wireframe.Dock.Fill);
+        background.Texture = backgroundRegion.Texture;
+        background.TextureAddress = TextureAddress.Custom;
+        background.TextureHeight = backgroundRegion.Height;
+        background.TextureWidth = backgroundRegion.Width;
+        background.TextureTop = backgroundRegion.SourceRectangle.Top;
+        background.TextureLeft = backgroundRegion.SourceRectangle.Left;
+        panel.AddChild(background);
+
+        return panel;
     }
 
     private ContainerRuntime CreateButtonColumn()
@@ -144,6 +184,14 @@ public class CombatHudUI : ContainerRuntime
 
     public void Update(GameTime gameTime)
     {
+        if (IsAttackMade)
+        {
+            _combatCommandsPanel.IsVisible = false;
+        }
+        else
+        {
+            _combatCommandsPanel.IsVisible = true;
+        }
         GumService.Default.Update(gameTime);
     }
 
