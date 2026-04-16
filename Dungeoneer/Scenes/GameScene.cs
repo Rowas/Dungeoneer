@@ -30,7 +30,7 @@ public class GameScene : Scene
     private DungeonMap _dungeonMap;
     private string _level;
 
-    private GameHudUI _hud;
+    private GameSceneHudUI _hud;
 
     private Vector2 _cameraPos = Vector2.Zero;
     private float CAMERA_SMOOTH_SPEED = 1.5f;
@@ -47,6 +47,11 @@ public class GameScene : Scene
 
     private GameSession _currentSession;
     private readonly GameSession _loadedSession;
+
+    private const int VisionRadiusTiles = 10;
+    private bool[,] _visibleNow;
+    private bool[,] _explored;
+    private Point _lastFovOrigin = new Point(int.MinValue, int.MinValue);
 
     private void OnResumeButtonClicked(object sender, EventArgs args)
     {
@@ -94,6 +99,8 @@ public class GameScene : Scene
             _playerCharacter = LoadEntities.CreatePlayer(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
         }
 
+        Exploration();
+
         _playerCharacter.BlockedByActor += (self, blocker) =>
         {
             if (blocker != _playerCharacter)
@@ -108,6 +115,13 @@ public class GameScene : Scene
         _playerCharacter.RestoreCollectedItems(_currentSession.Player.CollectedEquipment);
 
         _grayscaleEffect = Content.Load<Effect>("effects/grayscaleEffect");
+    }
+
+    public void Exploration()
+    {
+        _visibleNow = new bool[_dungeonMap.Columns, _dungeonMap.Rows];
+        _explored = new bool[_dungeonMap.Columns, _dungeonMap.Rows];
+        _lastFovOrigin = new Point(int.MinValue, int.MinValue);
     }
 
     public override void Initialize()
@@ -127,7 +141,7 @@ public class GameScene : Scene
         GumService.Default.Root.Children.Clear();
 
         // Create the game scene ui instance.
-        _hud = new GameHudUI();
+        _hud = new GameSceneHudUI();
 
         // Subscribe to the events from the game scene ui.
         _hud.ResumeButtonClick += OnResumeButtonClicked;
@@ -220,6 +234,21 @@ public class GameScene : Scene
 
         _playerCharacter.Update(gameTime);
 
+        Point origin = ToTile(_playerCharacter.Position);
+
+        // Beräkna bara om spelaren bytt tile (snålare)
+        if (origin != _lastFovOrigin)
+        {
+            _visibleNow = LOS.ComputeVisible(_dungeonMap, origin, VisionRadiusTiles);
+
+            // Fog of war (valfritt men rekommenderat)
+            for (int y = 0; y < _dungeonMap.Rows; y++)
+                for (int x = 0; x < _dungeonMap.Columns; x++)
+                    _explored[x, y] |= _visibleNow[x, y];
+
+            _lastFovOrigin = origin;
+        }
+
         _cameraPos = Camera.CameraLoc(Core.GraphicsDevice.Viewport, _playerCharacter, _dungeonMap,
                                         _cameraPos, gameTime, worldScale, CAMERA_SMOOTH_SPEED, _snapCamera, UiTopPaddingPx);
 
@@ -251,18 +280,21 @@ public class GameScene : Scene
             rasterizerState: new RasterizerState { ScissorTestEnable = true }
         );
 
-        _dungeonMap.Draw(Core.SpriteBatch);
+        _dungeonMap.Draw(Core.SpriteBatch, _visibleNow, _explored);
 
         _playerCharacter.Draw();
 
         foreach (var actor in _actors)
         {
-            actor.Draw();
+            var t = ToTile(actor.Position);
+            if (_visibleNow != null && t.X >= 0 && t.X < _dungeonMap.Columns && t.Y >= 0 && t.Y < _dungeonMap.Rows && _visibleNow[t.X, t.Y])
+                actor.Draw();
         }
-
         foreach (var prop in _props)
         {
-            prop.Draw();
+            var t = ToTile(prop.Position);
+            if (_visibleNow != null && t.X >= 0 && t.X < _dungeonMap.Columns && t.Y >= 0 && t.Y < _dungeonMap.Rows && _visibleNow[t.X, t.Y])
+                prop.Draw();
         }
 
         Core.SpriteBatch.End();

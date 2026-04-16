@@ -84,3 +84,6 @@
 #begin LevelFiles/Level1.txt
 /copy:LevelFiles/Level1.txt
 
+#begin LevelFiles/Level2.txt
+/copy:LevelFiles/Level2.txt
+

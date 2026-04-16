@@ -16,7 +16,7 @@ public sealed class GameSession
     public int SaveVersion { get; set; } = 2;
 
     // --- Nivå ---
-    /// <summary>Relativt Content Root, t.ex. LevelFiles/Level1_w_Boss.txt</summary>
+    /// <summary>Relativt Content Root, t.ex. LevelFiles/Level1.txt</summary>
     public string Level { get; set; } = string.Empty;
     public int TileSize { get; set; } = 64;
 

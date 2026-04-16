@@ -152,6 +152,48 @@ public class DungeonMap
         }
     }
 
+    public void Draw(SpriteBatch spriteBatch, bool[,] visibleNow, bool[,] explored = null, bool isCombat = false)
+    {
+        for (int y = 0; y < Rows; y++)
+        {
+            for (int x = 0; x < Columns; x++)
+            {
+                char cell = _grid[x, y];
+                if (cell == VOID) continue;
+
+                bool vis = visibleNow != null && visibleNow[x, y];
+                bool exp = explored != null && explored[x, y];
+
+                if (!vis && !exp)
+                    continue;
+
+                // Normal färg om synlig, mörk om bara explored
+                var tint = vis ? Color.White : new Color(80, 80, 80);
+
+                Vector2 position = new Vector2(x * TileSize, y * TileSize);
+
+                if (cell == WALL && isCombat == false)
+                {
+                    int bitmask = ComputeWallBitmask(x, y);
+                    TextureRegion tile = _wallTileset.GetTile(_wallBitmaskToTile[bitmask]);
+                    tile.Draw(spriteBatch, position, tint);
+                }
+                else if (cell == WALL && isCombat == true)
+                {
+                    int bitmask = ComputeWallBitmask(x, y);
+                    int combatTileIndex = PickCombatWallTileIndex(bitmask);
+                    TextureRegion tile = _wallTileset.GetTile(combatTileIndex);
+                    tile.Draw(spriteBatch, position, tint);
+                }
+                else
+                {
+                    int variation = ((x * 7) + (y * 13)) % _floorTileVariants.Length;
+                    TextureRegion tile = _floorTileset.GetTile(_floorTileVariants[variation]);
+                    tile.Draw(spriteBatch, position, tint);
+                }
+            }
+        }
+    }
     private static int PickCombatWallTileIndex(int bitmask)
     {
         bool hasNorth = (bitmask & 1) != 0;

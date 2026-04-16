@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Dungeoneer.UI;
 
-public class GameHudUI : ContainerRuntime
+public class GameSceneHudUI : ContainerRuntime
 {
     public const float TopBarHeightPx = 64f * 2f;
 
@@ -41,7 +41,7 @@ public class GameHudUI : ContainerRuntime
     private TextRuntime _armorText;
     private TextRuntime _levelText;
 
-    public GameHudUI()
+    public GameSceneHudUI()
     {
         Dock(Gum.Wireframe.Dock.Fill);
 
