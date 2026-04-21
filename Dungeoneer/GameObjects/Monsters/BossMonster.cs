@@ -29,12 +29,8 @@ public class BossMonster : ActorBase
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'B')
     {
     }
-    protected override Vector2? GetDesiredDirection(GameTime gameTime)
+    protected override Vector2? GetDesiredDirection(GameTime gameTime, Random rand)
     {
-        Random rand = new();
-
-        var direction = rand.NextDouble();
-
         return null;
     }
 

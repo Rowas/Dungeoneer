@@ -101,7 +101,7 @@ public abstract class ActorBase
             // Underklass avgör NÄR/VART den vill röra sig (input, AI etc.)
             if (CanStartNewStep())
             {
-                Vector2? desiredDirection = GetDesiredDirection(gameTime);
+                Vector2? desiredDirection = GetDesiredDirection(gameTime, rand);
                 if (desiredDirection.HasValue)
                 {
                     TryStartStep(desiredDirection.Value);
@@ -158,7 +158,7 @@ public abstract class ActorBase
     protected virtual bool CanStartNewStep()
         => MoveAnimRemaining <= TimeSpan.Zero;
 
-    protected abstract Vector2? GetDesiredDirection(GameTime gameTime);
+    protected abstract Vector2? GetDesiredDirection(GameTime gameTime, Random rand);
     protected virtual bool CanEnterWorldPosition(Vector2 candidateWorldPos)
     => _canMoveToWorldPos?.Invoke(this, candidateWorldPos) ?? false;
 
@@ -284,7 +284,6 @@ public abstract class ActorBase
 
             target.ActiveSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
             target.IdleSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
-            //target.AttackSprite.Scale = new Vector2(target.CombatScale, target.CombatScale);
         }
 
         UpdateSpriteFacing();
@@ -299,19 +298,19 @@ public abstract class ActorBase
         return Vector2.Zero;
     }
 
-    public virtual CombatActionResult Attack(ActorBase target, bool defending, bool skill = false)
+    public virtual CombatActionResult Attack(ActorBase target, bool isTargetDefending, bool skill = false)
     {
         BeginAttackAnimation();
 
         int attackRoll = RollDamage();
-        int damage = defending
+        int damage = isTargetDefending
             ? ComputeDamageVsDefend(attackRoll, target.Armor)
             : attackRoll;
 
         damage = skill ? damage * 2 : damage;
 
-        var defenderAction = defending ? CombatActionType.Defend : CombatActionType.None;
-        var outcome = (defending && damage <= 0) ? CombatOutcomeKind.Blocked : CombatOutcomeKind.Hit;
+        var defenderAction = isTargetDefending ? CombatActionType.Defend : CombatActionType.None;
+        var outcome = (isTargetDefending && damage <= 0) ? CombatOutcomeKind.Blocked : CombatOutcomeKind.Hit;
 
         return BuildCombatResult(defenderAction, target.EntityId, outcome, damage);
     }

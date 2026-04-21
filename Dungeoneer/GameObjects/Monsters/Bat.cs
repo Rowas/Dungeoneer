@@ -27,12 +27,10 @@ public class Bat : ActorBase
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'b')
     {
     }
-    protected override Vector2? GetDesiredDirection(GameTime gameTime)
+    protected override Vector2? GetDesiredDirection(GameTime gameTime, Random rand)
     {
         if (InCombat)
             return null;
-
-        Random rand = new();
 
         var direction = rand.NextDouble();
 

@@ -247,7 +247,7 @@ public class GameScene : Scene
                                 _level = "level1";
                                 break;
                         }
-                        _currentSession.Player.Position = new Vector2();
+
                         exitStairs.OnInteract(_level, _currentSession.Player);
                     }
                 }

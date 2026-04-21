@@ -14,7 +14,7 @@ namespace Dungeoneer.GameObjects.GameSessions;
 public sealed class GameSession
 {
     /// <summary>Öka när sparfilsformat ändras.</summary>
-    public int SaveVersion { get; set; } = 2;
+    public int SaveVersion { get; set; } = 1;
 
     // --- Nivå ---
     /// <summary>Relativt Content Root, t.ex. LevelFiles/Level1.txt</summary>
@@ -61,8 +61,6 @@ public sealed class MonsterSessionState
     /// <summary>Samma tecken som i kartfilen / Entities, t.ex. 'r', 'B'.</summary>
     public char MapKind { get; set; }
     public Vector2 Position { get; set; }
-    public int HealthCurrent { get; set; }
-    public int HealthMax { get; set; }
     public bool IsAlive { get; set; } = true;
 }
 public sealed class PropSessionState
@@ -150,8 +148,6 @@ public static class GameSessionExtensions
                 EntityId = a.EntityId,
                 MapKind = a.MapKind,
                 Position = a.Position,
-                HealthCurrent = a.HealthCurrent,
-                HealthMax = a.HealthPool,
                 IsAlive = true,
             })
             .ToList();

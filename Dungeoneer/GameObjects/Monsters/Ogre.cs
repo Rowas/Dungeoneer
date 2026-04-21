@@ -30,12 +30,8 @@ public class Ogre : ActorBase
         : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'G')
     {
     }
-    protected override Vector2? GetDesiredDirection(GameTime gameTime)
+    protected override Vector2? GetDesiredDirection(GameTime gameTime, Random rand)
     {
-        Random rand = new();
-
-        var direction = rand.NextDouble();
-
         return null; // För att göra Actorn stillastående, ta bort denna rad för att låta dem röra sig
     }
 

@@ -69,9 +69,7 @@ public static class LoadEntities
                 actorId,
                 atlas,
                 canMoveToWorldPos,
-                getBlockingActorAtWorldPos,
-                healthCurrent: null,
-                healthMax: null);
+                getBlockingActorAtWorldPos);
 
 
             if (actor != null)
@@ -99,9 +97,7 @@ public static class LoadEntities
                 entityId: m.EntityId,
                 atlas: atlas,
                 canMoveToWorldPos: canMoveToWorldPos,
-                getBlockingActorAtWorldPos: getBlockingActorAtWorldPos,
-                healthCurrent: m.HealthCurrent,
-                healthMax: m.HealthMax);
+                getBlockingActorAtWorldPos: getBlockingActorAtWorldPos);
 
             if (actor != null)
             {
@@ -119,9 +115,7 @@ public static class LoadEntities
     int entityId,
     TextureAtlas atlas,
     Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
-    int? healthCurrent,
-    int? healthMax)
+    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
     {
         ActorBase actor = mapKind switch
         {
@@ -131,11 +125,7 @@ public static class LoadEntities
             'B' => CreateBoss(atlas, x, y, canMoveToWorldPos, getBlockingActorAtWorldPos, entityId),
             _ => null
         };
-        //if (actor != null && healthCurrent.HasValue && healthMax.HasValue)
-        //{
-        //    actor.HealthPool = healthMax.Value;
-        //    actor.HealthCurrent = healthCurrent.Value;
-        //}
+
         return actor;
     }
 

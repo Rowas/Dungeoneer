@@ -51,7 +51,7 @@ public class PlayerCharacter : ActorBase
         base.Update(gameTime);
     }
 
-    protected override Vector2? GetDesiredDirection(GameTime gameTime)
+    protected override Vector2? GetDesiredDirection(GameTime gameTime, Random rand)
     {
         if (InCombat)
             return null;
