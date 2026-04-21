@@ -1,5 +1,8 @@
 ﻿using Dungeoneer.GameObjects.Bases;
+using Dungeoneer.GameObjects.GameSessions;
+using Dungeoneer.Scenes;
 using Microsoft.Xna.Framework;
+using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 
 namespace Dungeoneer.GameObjects.Pickups;
@@ -21,7 +24,11 @@ public class ExitStairs : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
-        // Move to the next level or end the game if this is the final level.
-        // This is a placeholder as the functionality currently isn't implemented.
+        // Do nothing, we need the player session state to change the scene, so we will use the TryInteract overload that takes the player session state
+    }
+
+    public void OnInteract(string NextLevel, PlayerSessionState playerState)
+    {
+        Core.ChangeScene(new GameScene(NextLevel, null, playerState));
     }
 }

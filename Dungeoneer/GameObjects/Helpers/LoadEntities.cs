@@ -55,7 +55,7 @@ public static class LoadEntities
 
     public static List<ActorBase> ParseActors(DungeonMap dungeonMap,
     TextureAtlas atlas, Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
+    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos, string currentLevel)
     {
         var list = new List<ActorBase>();
         foreach (var entity in dungeonMap.Entities)
@@ -73,15 +73,19 @@ public static class LoadEntities
                 healthCurrent: null,
                 healthMax: null);
 
+
             if (actor != null)
+            {
+                actor.ProgressionScaling(currentLevel);
                 list.Add(actor);
+            }
         }
         return list;
     }
 
     public static List<ActorBase> ParseActors(GameSession session,
     TextureAtlas atlas, Func<ActorBase, Vector2, bool> canMoveToWorldPos,
-    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos)
+    Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos, string currentLevel)
     {
         var list = new List<ActorBase>();
         foreach (var m in session.Monsters)
@@ -100,7 +104,10 @@ public static class LoadEntities
                 healthMax: m.HealthMax);
 
             if (actor != null)
+            {
+                actor.ProgressionScaling(currentLevel);
                 list.Add(actor);
+            }
         }
         return list;
     }
@@ -124,11 +131,11 @@ public static class LoadEntities
             'B' => CreateBoss(atlas, x, y, canMoveToWorldPos, getBlockingActorAtWorldPos, entityId),
             _ => null
         };
-        if (actor != null && healthCurrent.HasValue && healthMax.HasValue)
-        {
-            actor.HealthPool = healthMax.Value;
-            actor.HealthCurrent = healthCurrent.Value;
-        }
+        //if (actor != null && healthCurrent.HasValue && healthMax.HasValue)
+        //{
+        //    actor.HealthPool = healthMax.Value;
+        //    actor.HealthCurrent = healthCurrent.Value;
+        //}
         return actor;
     }
 

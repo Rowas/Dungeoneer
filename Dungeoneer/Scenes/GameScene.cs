@@ -1,6 +1,7 @@
 using Dungeoneer.GameObjects.Bases;
 using Dungeoneer.GameObjects.GameSessions;
 using Dungeoneer.GameObjects.Helpers;
+using Dungeoneer.GameObjects.Pickups;
 using Dungeoneer.GameObjects.Player;
 using Dungeoneer.Maps;
 using Dungeoneer.UI;
@@ -47,6 +48,7 @@ public class GameScene : Scene
 
     private GameSession _currentSession;
     private readonly GameSession _loadedSession;
+    private readonly PlayerSessionState _playerSession;
 
     private const int VisionRadiusTiles = 10;
     private bool[,] _visibleNow;
@@ -68,10 +70,11 @@ public class GameScene : Scene
         Core.ChangeScene(new SaveLoadScene(true, _currentSession));
     }
 
-    public GameScene(string level, GameSession session = null)
+    public GameScene(string level, GameSession session = null, PlayerSessionState playerSession = null)
     {
         _loadedSession = session;
         _level = level;
+        _playerSession = playerSession;
     }
 
     public override void LoadContent()
@@ -83,9 +86,19 @@ public class GameScene : Scene
         {
             _dungeonMap.LoadMap(Content, _level);
 
-            _playerCharacter = LoadEntities.CreatePlayer(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            if (_playerSession == null)
+            {
+                _playerCharacter = LoadEntities.CreatePlayer(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            }
+            else
+            {
+                GameSession nextLevel = new();
+                nextLevel.Player = _playerSession;
+                nextLevel.Player.Position = _dungeonMap.PlayerStart;
+                _playerCharacter = LoadEntities.CreatePlayer(nextLevel, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            }
 
-            _actors = LoadEntities.ParseActors(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            _actors = LoadEntities.ParseActors(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos, _level);
             _props = LoadEntities.ParseProps(_dungeonMap, GameAssets.GameObjectAtlas);
         }
         else
@@ -95,11 +108,14 @@ public class GameScene : Scene
             _cameraPos = _loadedSession.CameraPosition;
 
             _props = LoadEntities.ParseProps(_loadedSession, GameAssets.GameObjectAtlas);
-            _actors = LoadEntities.ParseActors(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            _actors = LoadEntities.ParseActors(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos, _loadedSession.Level);
             _playerCharacter = LoadEntities.CreatePlayer(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
         }
 
         Exploration();
+
+        if (_loadedSession != null)
+            _explored = GameSessionExtensions.UnpackExplored(_loadedSession.ExploredTiles, _dungeonMap.Columns, _dungeonMap.Rows);
 
         _playerCharacter.BlockedByActor += (self, blocker) =>
         {
@@ -110,7 +126,7 @@ public class GameScene : Scene
             }
         };
 
-        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level);
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level, _explored, _dungeonMap.Columns, _dungeonMap.Rows);
 
         _playerCharacter.RestoreCollectedItems(_currentSession.Player.CollectedEquipment);
 
@@ -205,9 +221,36 @@ public class GameScene : Scene
         foreach (var prop in _props)
         {
             prop.Update(gameTime);
+
             if (prop.CanInteract && prop.TryInteract(_playerCharacter))
             {
-
+                if (prop.MapKind == 'E')
+                {
+                    var exitStairs = prop as ExitStairs;
+                    if (exitStairs != null)
+                    {
+                        switch (_level)
+                        {
+                            case "level1":
+                                _level = "level2";
+                                break;
+                            case "level2":
+                                _level = "level3";
+                                break;
+                            case "level3":
+                                _level = "level4";
+                                break;
+                            case "level4":
+                                _level = "level5";
+                                break;
+                            default:
+                                _level = "level1";
+                                break;
+                        }
+                        _currentSession.Player.Position = new Vector2();
+                        exitStairs.OnInteract(_level, _currentSession.Player);
+                    }
+                }
             }
 
             if (prop.IsCollected)
@@ -362,7 +405,7 @@ public class GameScene : Scene
 
     private void StartCombat(ActorBase monster)
     {
-        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level);
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level, _explored, _dungeonMap.Columns, _dungeonMap.Rows);
         Core.ChangeScene(new CombatScene(new CombatEncounter(_playerCharacter, monster, _dungeonMap, GameAssets.GameObjectAtlas, _currentSession)));
     }
 }

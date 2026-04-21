@@ -56,6 +56,7 @@ public abstract class ActorBase
     public abstract int Armor { get; set; }
     public List<string> CollectedItemKeys { get; set; } = new();
     public virtual int XPValue { get; set; }
+    public virtual double CurrentScaling { get; set; }
 
     protected ActorBase(
         AnimatedSprite idleSprite,
@@ -119,6 +120,27 @@ public abstract class ActorBase
             ActiveSprite = IdleSprite ?? AttackSprite;
 
         ActiveSprite?.Draw(Core.SpriteBatch, GetDrawPosition());
+    }
+
+    public void ProgressionScaling(string currentLevel)
+    {
+        double scalingFactor = currentLevel switch
+        {
+            "level1" => 1.0,
+            "level2" => 1.2,
+            "level3" => 1.5,
+            "level4" => 1.8,
+            _ => 1.0
+        };
+
+        CurrentScaling = scalingFactor;
+
+        HealthPool = (int)(HealthPool * scalingFactor);
+        HealthCurrent = (int)(HealthCurrent * scalingFactor);
+        MinDamage = (int)(MinDamage * scalingFactor);
+        MaxDamage = (int)(MaxDamage * scalingFactor);
+        Armor = (int)(Armor * scalingFactor);
+        XPValue = (int)(XPValue * scalingFactor);
     }
 
     public Vector2 SpriteDrawPosition => GetDrawPosition();
@@ -277,61 +299,60 @@ public abstract class ActorBase
         return Vector2.Zero;
     }
 
-    public virtual CombatActionResult Attack(ActorBase target, bool defending)
+    public virtual CombatActionResult Attack(ActorBase target, bool defending, bool skill = false)
+    {
+        BeginAttackAnimation();
+
+        int attackRoll = RollDamage();
+        int damage = defending
+            ? ComputeDamageVsDefend(attackRoll, target.Armor)
+            : attackRoll;
+
+        damage = skill ? damage * 2 : damage;
+
+        var defenderAction = defending ? CombatActionType.Defend : CombatActionType.None;
+        var outcome = (defending && damage <= 0) ? CombatOutcomeKind.Blocked : CombatOutcomeKind.Hit;
+
+        return BuildCombatResult(defenderAction, target.EntityId, outcome, damage);
+    }
+
+    private void BeginAttackAnimation()
     {
         AttackMade = true;
-        if (AttackSprite?.Animation != null)
-        {
-            AttackAnimRemaining = new TimeSpan(AttackSprite.Animation.Delay.Ticks * AttackSprite.Animation.Frames.Count);
-        }
-        else
-        {
-            AttackAnimRemaining = TimeSpan.FromMilliseconds(300);
-        }
 
-        int Damage = 0;
-        int attackRoll = rand.Next(MinDamage, MaxDamage);
-        float defenseModifier = defending ? 0.5f : 1f;
+        var anim = AttackSprite?.Animation;
+        AttackAnimRemaining = (anim != null)
+            ? TimeSpan.FromTicks(anim.Delay.Ticks * anim.Frames.Count)
+            : TimeSpan.FromMilliseconds(300);
+    }
 
-        if (defending)
-        {
-            Damage = (int)Math.Round((attackRoll - target.Armor) * defenseModifier);
+    private int RollDamage()
+    {
+        return rand.Next(MinDamage, MaxDamage + 1);
+    }
 
-            if (Damage <= 0)
-            {
-                return new CombatActionResult(
-                    CombatActionType.Attack,
-                    this.EntityId,
-                    CombatActionType.Defend,
-                    target.EntityId,
-                    CombatOutcomeKind.Blocked,
-                    Damage
-                );
-            }
+    private int ComputeDamageVsDefend(int attackRoll, int targetArmor)
+    {
+        return (int)Math.Round((attackRoll - targetArmor) * 0.5f);
+    }
 
-            return new CombatActionResult(
-                CombatActionType.Attack,
-                this.EntityId,
-                CombatActionType.Defend,
-                target.EntityId,
-                CombatOutcomeKind.Hit,
-                Damage
-                );
-        }
-
-        Damage = attackRoll;
-
+    private CombatActionResult BuildCombatResult(
+        CombatActionType defenderAction,
+        int targetEntityId,
+        CombatOutcomeKind outcome,
+        int damageDealt)
+    {
         return new CombatActionResult(
             CombatActionType.Attack,
-            this.EntityId,
-            CombatActionType.None,
-            target.EntityId,
-            CombatOutcomeKind.Hit,
-            Damage
+            EntityId,
+            defenderAction,
+            targetEntityId,
+            outcome,
+            damageDealt
         );
     }
 
-    public enum CombatActionType { Attack, Defend, None }
+    public enum CombatActionType { Attack, Defend, Skill, None }
     public enum CombatOutcomeKind { Hit, Blocked, Rest }
     public sealed record CombatActionResult(
         CombatActionType AttackerAction,

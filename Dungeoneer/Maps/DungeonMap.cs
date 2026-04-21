@@ -20,7 +20,6 @@ public class DungeonMap
     public int Columns { get; private set; }
     public int Rows { get; private set; }
     public int TileSize { get; }
-
     public Vector2 PlayerStart { get; private set; }
     public char PlayerSymbol { get; private set; }
 
@@ -34,7 +33,7 @@ public class DungeonMap
         8,  //  3  ╚  North + East
         13,  //  4  ╥  South only
         2,  //  5  ║  North + South (vertical)
-        0,  //  6  ╔  East + South >XXXX<
+        0,  //  6  ╔  East + South
         11,  //  7  ╠  North + East + South (T right)
         5,  //  8  ╡  West only
         9,  //  9  ╝  North + West

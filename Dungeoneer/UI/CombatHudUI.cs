@@ -42,6 +42,7 @@ public class CombatHudUI : ContainerRuntime
     public bool Flee { get; set; } = false;
     public bool Attack { get; set; } = false;
     public bool Defend { get; set; } = false;
+    public bool Skill { get; set; } = false;
 
     public CombatHudUI()
     {
@@ -100,10 +101,10 @@ public class CombatHudUI : ContainerRuntime
 
         _buttonColumn.AddChild(_attackButton);
 
-        // Defend-Button
+        // Use-Skill-Button
         _defendButton = new AnimatedButton(GameAssets.GameObjectAtlas);
-        _defendButton.Text = "Defend!";
-        _defendButton.Click += HandleDefend;
+        _defendButton.Text = "Skill!";
+        _defendButton.Click += HandleSkill;
         _defendButton.Anchor(Gum.Wireframe.Anchor.Center);
         _defendButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
         _defendButton.Y = 50;
@@ -276,6 +277,14 @@ public class CombatHudUI : ContainerRuntime
             return;
 
         Defend = true;
+    }
+
+    private void HandleSkill(object sender, EventArgs e)
+    {
+        if (IsAttackMade)
+            return;
+
+        Skill = true;
     }
 
     private void HandleAttack(object sender, EventArgs e)

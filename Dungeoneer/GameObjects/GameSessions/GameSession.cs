@@ -1,6 +1,7 @@
 ﻿using Dungeoneer.GameObjects.Bases;
 using Dungeoneer.GameObjects.Player;
 using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -35,6 +36,7 @@ public sealed class GameSession
     // --- Hjälp: nästa id vid spawn (om ni inte räknar från kartan) ---
     public int NextEntityId { get; set; } = 1;
     public int TakeNextEntityId() => NextEntityId++;
+    public byte[] ExploredTiles { get; set; }
 }
 public sealed class PlayerSessionState
 {
@@ -70,6 +72,13 @@ public sealed class PropSessionState
     public char MapKind { get; set; }
     public Vector2 Position { get; set; }
     public bool IsCollected { get; set; }
+}
+
+public sealed class ExploredState
+{
+    public int MapColumns { get; set; }
+    public int MapRows { get; set; }
+    public byte[] ExploredBits { get; set; } = Array.Empty<byte>();
 }
 
 public sealed class CombatOutcome
@@ -108,7 +117,8 @@ public static class GameSessionCombatExtensions
 
 public static class GameSessionExtensions
 {
-    public static GameSession ParseGameSession(PlayerCharacter _playerCharacter, List<ActorBase> _actors, List<PropBase> _props, string _level)
+    public static GameSession ParseGameSession(PlayerCharacter _playerCharacter, List<ActorBase> _actors, List<PropBase> _props, string _level,
+        bool[,] exploration, int Columns, int Rows)
     {
         GameSession currentSession = new GameSession
         {
@@ -130,7 +140,8 @@ public static class GameSessionExtensions
             },
             Monsters = new List<MonsterSessionState>(),
             Props = new List<PropSessionState>(),
-            NextEntityId = 0
+            NextEntityId = 0,
+            ExploredTiles = GameSessionExtensions.PackExplored(exploration, Columns, Rows)
         };
 
         currentSession.Monsters = _actors
@@ -156,5 +167,35 @@ public static class GameSessionExtensions
             .ToList();
 
         return currentSession;
+    }
+
+    public static byte[] PackExplored(bool[,] explored, int columns, int rows)
+    {
+        int total = columns * rows;
+        var bytes = new byte[(total + 7) / 8];
+        for (int y = 0; y < rows; y++)
+            for (int x = 0; x < columns; x++)
+                if (explored[x, y])
+                {
+                    int index = y * columns + x;
+                    bytes[index / 8] |= (byte)(1 << (index % 8));
+                }
+        return bytes;
+    }
+    public static bool[,] UnpackExplored(byte[]? bytes, int columns, int rows)
+    {
+        var explored = new bool[columns, rows];
+        if (bytes == null || bytes.Length == 0) return explored;
+        int total = columns * rows;
+        int expected = (total + 7) / 8;
+        if (bytes.Length != expected) return explored;
+        for (int index = 0; index < total; index++)
+        {
+            if ((bytes[index / 8] & (1 << (index % 8))) == 0) continue;
+            int x = index % columns;
+            int y = index / columns;
+            explored[x, y] = true;
+        }
+        return explored;
     }
 }

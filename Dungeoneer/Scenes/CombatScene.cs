@@ -120,6 +120,31 @@ public class CombatScene : Scene
             _hudUI.PrintCombatLog(CombatResult, _encounter);
         }
 
+        if (_hudUI.Skill == true)
+        {
+            actionRoll = Rand.NextDouble();
+
+            if (actionRoll > 0.25)
+            {
+                CombatResult = _encounter.Player.Attack(_encounter.Monster, true, true);
+
+                GetCombatOutcome(_encounter.Monster, CombatResult);
+            }
+            else
+            {
+                CombatResult = _encounter.Player.Attack(_encounter.Monster, false, true);
+                GetCombatOutcome(_encounter.Monster, CombatResult);
+
+                _hudUI.PrintCombatLog(CombatResult, _encounter);
+
+                CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
+
+                GetCombatOutcome(_encounter.Player, CombatResult);
+            }
+
+            _hudUI.PrintCombatLog(CombatResult, _encounter);
+        }
+
         if (_hudUI.Attack == true)
         {
             actionRoll = Rand.NextDouble();
@@ -153,6 +178,7 @@ public class CombatScene : Scene
         CombatResult = null;
         _hudUI.Defend = false;
         _hudUI.Attack = false;
+        _hudUI.Skill = false;
 
         _hudUI.IsAttackMade = _encounter.Player.IsAttacking;
         _hudUI.Update(gameTime);
