@@ -37,6 +37,14 @@ public class SaveGameService
         var json = File.ReadAllText(filePath);
         return JsonSerializer.Deserialize<GameSession>(json, jsonOptions);
     }
+
+    public bool SaveGameExists(string saveFileName = "savegame")
+    {
+        var dir = Path.Combine(AppContext.BaseDirectory, "savegames");
+        Directory.CreateDirectory(dir);
+        var filePath = Path.Combine(dir, $"{saveFileName}.json");
+        return File.Exists(filePath);
+    }
 }
 
 public sealed class Vector2JsonConverter : JsonConverter<Vector2>

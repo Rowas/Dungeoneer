@@ -104,6 +104,14 @@ public class AnimatedButton : Button
             background.Animate = false;
         };
 
+        StateSave disabledState = buttonVisual.States.Disabled;
+        disabledState.Apply = () =>
+        {
+            background.States.Clear();
+            background.CurrentChainName = unfocusedAnimation.Name;
+            background.Animate = false;
+        };
+
         StateSave focusedState = buttonVisual.States.Focused;
         focusedState.Apply = () =>
         {
@@ -126,6 +134,8 @@ public class AnimatedButton : Button
     /// </summary>
     private void HandleKeyDown(object sender, KeyEventArgs e)
     {
+        if (!IsEnabled) return;
+
         if (e.Key == Keys.Left)
         {
             // Left arrow navigates to previous control

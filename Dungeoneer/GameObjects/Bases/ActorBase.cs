@@ -49,11 +49,13 @@ public abstract class ActorBase
     public char MapKind { get; }
     public bool InCombat { get; set; } = false;
     public bool AttackMade { get; set; }
+    public virtual bool IsDamaged => HealthCurrent < HealthPool;
     public abstract int HealthPool { get; set; }
     public abstract int HealthCurrent { get; set; }
     public abstract int MinDamage { get; set; }
     public abstract int MaxDamage { get; set; }
     public abstract int Armor { get; set; }
+    public virtual int SkillCD { get; set; }
     public List<string> CollectedItemKeys { get; set; } = new();
     public virtual int XPValue { get; set; }
     public virtual double CurrentScaling { get; set; }
@@ -135,8 +137,10 @@ public abstract class ActorBase
 
         CurrentScaling = scalingFactor;
 
+        if (!IsDamaged)
+            HealthCurrent = (int)(HealthCurrent * scalingFactor);
+
         HealthPool = (int)(HealthPool * scalingFactor);
-        HealthCurrent = (int)(HealthCurrent * scalingFactor);
         MinDamage = (int)(MinDamage * scalingFactor);
         MaxDamage = (int)(MaxDamage * scalingFactor);
         Armor = (int)(Armor * scalingFactor);
@@ -308,6 +312,20 @@ public abstract class ActorBase
             : attackRoll;
 
         damage = skill ? damage * 2 : damage;
+
+        if (skill)
+        {
+            var result = rand.NextDouble();
+            if (result >= 0.95)
+                damage = 999; // Execute Target
+
+            if (target.HealthCurrent / (double)target.HealthPool <= 0.2 && result >= 0.25)
+                damage = 999; // Increased execution chance on low health targets
+
+            if (SkillCD == 0)
+                SkillCD = 3;
+        }
+
 
         var defenderAction = isTargetDefending ? CombatActionType.Defend : CombatActionType.None;
         var outcome = (isTargetDefending && damage <= 0) ? CombatOutcomeKind.Blocked : CombatOutcomeKind.Hit;

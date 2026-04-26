@@ -19,9 +19,10 @@ public class CombatHudUI : ContainerRuntime
     private ContainerRuntime _buttonColumn;
 
     private AnimatedButton _attackButton;
-    private AnimatedButton _defendButton;
+    private AnimatedButton _skillButton;
     private AnimatedButton _fleeButton;
 
+    private TextRuntime _skillCooldownLabel;
     private TextRuntime _monsterHP;
     private TextRuntime _playerHP;
 
@@ -43,6 +44,7 @@ public class CombatHudUI : ContainerRuntime
     public bool Attack { get; set; } = false;
     public bool Defend { get; set; } = false;
     public bool Skill { get; set; } = false;
+    private int _lastSkillCd { get; set; } = -1;
 
     public CombatHudUI()
     {
@@ -102,14 +104,29 @@ public class CombatHudUI : ContainerRuntime
         _buttonColumn.AddChild(_attackButton);
 
         // Use-Skill-Button
-        _defendButton = new AnimatedButton(GameAssets.GameObjectAtlas);
-        _defendButton.Text = "Skill!";
-        _defendButton.Click += HandleSkill;
-        _defendButton.Anchor(Gum.Wireframe.Anchor.Center);
-        _defendButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _defendButton.Y = 50;
+        _skillButton = new AnimatedButton(GameAssets.GameObjectAtlas);
+        _skillButton.Text = "Bite!";
+        _skillButton.Click += HandleSkill;
+        _skillButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _skillButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _skillButton.Y = 50;
 
-        _buttonColumn.AddChild(_defendButton);
+        _buttonColumn.AddChild(_skillButton);
+
+        _skillCooldownLabel = LogLine(); // eller en egen CreateSmallText()
+        _skillCooldownLabel.Text = " ";  // tomt initialt
+        _skillCooldownLabel.Visible = false;
+
+        // Lägg den på samma Y som skill-knappen (50%) men finjustera med pixel-offset så den hamnar “på knappen”
+        _skillCooldownLabel.Anchor(Gum.Wireframe.Anchor.Center);
+        _skillCooldownLabel.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _skillCooldownLabel.Y = _skillButton.Y;          // 50
+        _skillCooldownLabel.XUnits = _skillButton.XUnits; // om du använder XUnits
+        _skillCooldownLabel.X = _skillButton.X;          // om du använder X
+        _skillCooldownLabel.HorizontalAlignment = HorizontalAlignment.Center;
+
+        // Lägg till efter knappen så den ritas ovanpå (Z-order via add-order)
+        _buttonColumn.AddChild(_skillCooldownLabel);
 
         // Flee-Button
         _fleeButton = new AnimatedButton(GameAssets.GameObjectAtlas);
@@ -215,6 +232,41 @@ public class CombatHudUI : ContainerRuntime
             encounter.Monster.HealthCurrent, encounter.Monster.HealthPool);
         LayoutHpAboveActor(viewport, _playerHP, encounter.Player);
         LayoutHpAboveActor(viewport, _monsterHP, encounter.Monster);
+
+        UpdateSkillCooldown(encounter.Player.SkillCD);
+    }
+
+    private void UpdateSkillCooldown(int cd)
+    {
+        // Uppdatera label-text endast om värdet ändras (valfritt men bra)
+        bool changed = cd != _lastSkillCd;
+
+        if (cd > 0)
+        {
+            // Se till att knappen inte går att välja
+            if (_skillButton.IsFocused)
+                _attackButton.IsFocused = true;
+
+            _skillButton.IsFocused = false;
+            _skillButton.IsEnabled = false;
+            _skillButton.IsVisible = false;
+
+            _skillCooldownLabel.Visible = true;
+
+            if (changed)
+                _skillCooldownLabel.Text = $"Skill cooldown: {cd}";
+        }
+        else
+        {
+            _skillButton.IsEnabled = true;
+            _skillCooldownLabel.Visible = false;
+            _skillButton.IsVisible = true;
+
+            if (changed)
+                _skillCooldownLabel.Text = " ";
+        }
+
+        _lastSkillCd = cd;
     }
 
     private void LayoutHpAboveActor(Viewport vp, TextRuntime label, ActorBase actor)
@@ -294,6 +346,4 @@ public class CombatHudUI : ContainerRuntime
 
         Attack = true;
     }
-
-
 }

@@ -1,4 +1,5 @@
-﻿using Dungeoneer.GameObjects.Helpers;
+﻿using Dungeoneer.GameObjects.GameSessions;
+using Dungeoneer.GameObjects.Helpers;
 using Gum.DataTypes;
 using Gum.Forms.Controls;
 using Gum.Managers;
@@ -23,9 +24,9 @@ public class SaveLoadHudUI : ContainerRuntime
 
     private AnimatedButton _backButton;
 
-    private AnimatedButton _saveSlotButton1;
-    private AnimatedButton _saveSlotButton2;
-    private AnimatedButton _saveSlotButton3;
+    public AnimatedButton _saveSlotButton1;
+    public AnimatedButton _saveSlotButton2;
+    public AnimatedButton _saveSlotButton3;
     private AnimatedButton _returnButton;
 
     public event EventHandler ActiveGameBack;
@@ -38,6 +39,8 @@ public class SaveLoadHudUI : ContainerRuntime
 
     private Panel _saveGamesPanel;
     private TextRuntime _panelText;
+
+    private SaveGameService _saveLoadService = new();
 
     public SaveLoadHudUI(bool ActiveGame)
     {
@@ -135,7 +138,17 @@ public class SaveLoadHudUI : ContainerRuntime
         for (int i = 0; i < 3; i++)
         {
             TextRuntime saveSlotText = new TextRuntime();
-            saveSlotText.Text = $"Save Slot {i + 1}";
+            var saveDataExists = _saveLoadService.SaveGameExists($"slot{i + 1}");
+            if (saveDataExists)
+            {
+                var saveData = _saveLoadService.LoadGame($"slot{i + 1}");
+                saveSlotText.Text = $"Slot {i + 1} - Floor: {saveData.Level}, Current Level: {saveData.Player.CurrentLevel}";
+            }
+            else
+            {
+                saveSlotText.Text = $"Slot {i + 1}: Empty";
+            }
+
             saveSlotText.UseCustomFont = true;
             saveSlotText.CustomFontFile = "fonts/04b_30.fnt";
             saveSlotText.FontScale = 0.75f;

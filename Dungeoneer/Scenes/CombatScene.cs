@@ -87,6 +87,7 @@ public class CombatScene : Scene
             {
                 PlayerHealthAfter = _encounter.Player.HealthCurrent,
                 MonsterEntityId = _encounter.Monster.EntityId,
+                MonsterHealthAfter = _encounter.Monster.HealthCurrent,
                 MonsterDefeated = false
             };
 
@@ -122,6 +123,9 @@ public class CombatScene : Scene
 
         if (_hudUI.Skill == true)
         {
+            if (_encounter.Player.SkillCD > 0)
+                return;
+
             actionRoll = Rand.NextDouble();
 
             if (actionRoll > 0.25)
@@ -166,6 +170,9 @@ public class CombatScene : Scene
 
                 GetCombatOutcome(_encounter.Player, CombatResult);
             }
+
+            if (_encounter.Player.SkillCD > 0)
+                _encounter.Player.SkillCD--;
 
             _hudUI.PrintCombatLog(CombatResult, _encounter);
         }

@@ -178,6 +178,8 @@ public class GameScene : Scene
         }
         else
         {
+            _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level, _explored, _dungeonMap.Columns, _dungeonMap.Rows);
+
             if (_loadedSession == null)
                 _hud.ShowPausePanel(_currentSession.Level);
             else
@@ -257,11 +259,13 @@ public class GameScene : Scene
             {
                 if (prop.MapKind == 'W')
                 {
+                    _currentSession.Player.CollectedEquipment.Add(new CollectedItemState { ItemKey = "tier-1-sword" });
                     _hud.CreateInventoryItem("tier-1-sword", _hud._itemContainer);
                 }
 
                 if (prop.MapKind == 'A')
                 {
+                    _currentSession.Player.CollectedEquipment.Add(new CollectedItemState { ItemKey = "tier-1-armor" });
                     _hud.CreateInventoryItem("tier-1-armor", _hud._itemContainer);
                 }
             }
@@ -290,6 +294,10 @@ public class GameScene : Scene
                     _explored[x, y] |= _visibleNow[x, y];
 
             _lastFovOrigin = origin;
+
+            _currentSession.Player.Position = _playerCharacter.Position;
+            _currentSession.CameraPosition = _cameraPos;
+            _currentSession.ExploredTiles = GameSessionExtensions.PackExplored(_explored, _dungeonMap.Columns, _dungeonMap.Rows);
         }
 
         _cameraPos = Camera.CameraLoc(Core.GraphicsDevice.Viewport, _playerCharacter, _dungeonMap,

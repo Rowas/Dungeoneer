@@ -62,6 +62,8 @@ public sealed class MonsterSessionState
     public char MapKind { get; set; }
     public Vector2 Position { get; set; }
     public bool IsAlive { get; set; } = true;
+    public bool IsDamaged { get; set; } = false;
+    public int HealthCurrent { get; set; }
 }
 public sealed class PropSessionState
 {
@@ -107,6 +109,11 @@ public static class GameSessionCombatExtensions
             {
                 session.Monsters[i].IsAlive = false;
                 session.Player.CurrentXP += outcome.XPGained;
+            }
+            else
+            {
+                session.Monsters[i].HealthCurrent = outcome.MonsterHealthAfter;
+                session.Monsters[i].IsDamaged = true;
             }
             return;
         }

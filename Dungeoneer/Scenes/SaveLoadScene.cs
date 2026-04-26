@@ -53,8 +53,11 @@ public class SaveLoadScene : Scene
         else if (e.Item2 == "load")
         {
             // Handle load game logic here
-            _currentSession = _saveLoadService.LoadGame(e.Item1);
-            Core.ChangeScene(new GameScene(_currentSession.Level, _currentSession));
+            if (_saveLoadService.SaveGameExists(e.Item1))
+            {
+                _currentSession = _saveLoadService.LoadGame(e.Item1);
+                Core.ChangeScene(new GameScene(_currentSession.Level, _currentSession));
+            }
         }
     }
 

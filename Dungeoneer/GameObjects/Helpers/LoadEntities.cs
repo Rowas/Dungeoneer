@@ -101,6 +101,9 @@ public static class LoadEntities
 
             if (actor != null)
             {
+                if (m.IsDamaged)
+                    actor.HealthCurrent = m.HealthCurrent;
+
                 actor.ProgressionScaling(currentLevel);
                 list.Add(actor);
             }
