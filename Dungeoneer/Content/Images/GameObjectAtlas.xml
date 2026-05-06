@@ -12,30 +12,53 @@
     <Region name="slime-move-pink-6" x="834" y="11" width="64" height="64"/>
     <Region name="slime-move-pink-7" x="908" y="11" width="64" height="64"/>
 
+    <Region name="panel-background" x="977" y="109" width="15" height="15"/>
+
+    <Region name="slime-eat-pink-1" x="0" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-2" x="64" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-3" x="128" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-4" x="192" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-5" x="256" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-6" x="320" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-7" x="384" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-8" x="448" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-9" x="512" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-10" x="576" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-11" x="640" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-12" x="704" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-13" x="768" y="277" width="64" height="64"/>
+    <Region name="slime-eat-pink-14" x="832" y="277" width="64" height="64"/>
+
     <Region name="red-potion" x="268" y="82" width="64" height="64"/>
     <Region name="food-bread" x="332" y="82" width="64" height="64"/>
     <Region name="tier-1-armor" x="396" y="82" width="64" height="64"/>
     <Region name="tier-1-sword" x="460" y="82" width="64" height="64"/>
+    <Region name="xp-icon" x="525" y="82" width="64" height="64"/>
+    <Region name="exit-stairs" x="781" y="146" width="64" height="64"/>
 
-    <Region name="plague-rat-idle-1" x="268" y="201" width="64" height="64"/>
-    <Region name="plague-rat-idle-2" x="332" y="201" width="64" height="64"/>
-    <Region name="plague-rat-idle-3" x="396" y="201" width="64" height="64"/>
-    <Region name="plague-rat-idle-4" x="460" y="201" width="64" height="64"/>
+    <Region name="focused-button-1" x="590" y="82" width="128" height="64" />
+    <Region name="focused-button-2" x="720" y="82" width="128" height="64" />
+    <Region name="unfocused-button" x="848" y="82" width="128" height="64" />
 
-    <Region name="brawny-ogre-idle-1" x="524" y="201" width="64" height="64"/>
-    <Region name="brawny-ogre-idle-2" x="588" y="201" width="64" height="64"/>
-    <Region name="brawny-ogre-idle-3" x="652" y="201" width="64" height="64"/>
-    <Region name="brawny-ogre-idle-4" x="716" y="201" width="64" height="64"/>
+    <Region name="plague-rat-idle-1" x="268" y="146" width="64" height="64"/>
+    <Region name="plague-rat-idle-2" x="332" y="146" width="64" height="64"/>
+    <Region name="plague-rat-idle-3" x="396" y="146" width="64" height="64"/>
+    <Region name="plague-rat-idle-4" x="460" y="146" width="64" height="64"/>
 
-    <Region name="evil-bat-idle-1" x="268" y="265" width="64" height="64" />
-    <Region name="evil-bat-idle-2" x="330" y="265" width="64" height="64" />
-    <Region name="evil-bat-idle-3" x="394" y="265" width="64" height="64" />
-    <Region name="evil-bat-idle-4" x="458" y="265" width="64" height="64" />
+    <Region name="brawny-ogre-idle-1" x="524" y="146" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-2" x="588" y="146" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-3" x="652" y="146" width="64" height="64"/>
+    <Region name="brawny-ogre-idle-4" x="716" y="146" width="64" height="64"/>
 
-    <Region name="grave-revenant-boss-idle-1" x="522" y="265" width="64" height="64" />
-    <Region name="grave-revenant-boss-idle-2" x="586" y="265" width="64" height="64" />
-    <Region name="grave-revenant-boss-idle-3" x="650" y="265" width="64" height="64" />
-    <Region name="grave-revenant-boss-idle-4" x="714" y="265" width="64" height="64" />
+    <Region name="evil-bat-idle-1" x="268" y="211" width="64" height="64" />
+    <Region name="evil-bat-idle-2" x="330" y="211" width="64" height="64" />
+    <Region name="evil-bat-idle-3" x="394" y="211" width="64" height="64" />
+    <Region name="evil-bat-idle-4" x="458" y="211" width="64" height="64" />
+
+    <Region name="grave-revenant-boss-idle-1" x="522" y="211" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-2" x="586" y="211" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-3" x="650" y="211" width="64" height="64" />
+    <Region name="grave-revenant-boss-idle-4" x="714" y="211" width="64" height="64" />
   </Regions>
   <Animations>
     <Animation name="slime-idle-pink-animation" delay="400">
@@ -51,6 +74,22 @@
       <Frame region="slime-move-pink-5"/>
       <Frame region="slime-move-pink-6"/>
       <Frame region="slime-move-pink-7"/>
+    </Animation>
+    <Animation name="slime-eat-pink-animation" delay="48">
+      <Frame region="slime-eat-pink-1"/>
+      <Frame region="slime-eat-pink-2"/>
+      <Frame region="slime-eat-pink-3"/>
+      <Frame region="slime-eat-pink-4"/>
+      <Frame region="slime-eat-pink-5"/>
+      <Frame region="slime-eat-pink-6"/>
+      <Frame region="slime-eat-pink-7"/>
+      <Frame region="slime-eat-pink-8"/>
+      <Frame region="slime-eat-pink-9"/>
+      <Frame region="slime-eat-pink-10"/>
+      <Frame region="slime-eat-pink-11"/>
+      <Frame region="slime-eat-pink-12"/>
+      <Frame region="slime-eat-pink-13"/>
+      <Frame region="slime-eat-pink-14"/>
     </Animation>
 
     <Animation name="plague-rat-idle-animation" delay="333">
@@ -79,6 +118,11 @@
       <Frame region="brawny-ogre-idle-2"/>
       <Frame region="brawny-ogre-idle-3"/>
       <Frame region="brawny-ogre-idle-4"/>
+    </Animation>
+
+    <Animation name="focused-button-animation" delay="333">
+      <Frame region="focused-button-1" />
+      <Frame region="focused-button-2" />
     </Animation>
   </Animations>
 </TextureAtlas>

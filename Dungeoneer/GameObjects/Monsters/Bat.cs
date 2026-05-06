@@ -7,27 +7,32 @@ namespace Dungeoneer.GameObjects.Monsters;
 
 public class Bat : ActorBase
 {
-    public override int healthPool { get; set; } = 10;
-    public override int minDamage { get; set; } = 1;
-    public override int maxDamage { get; set; } = 3;
-    public override int armor { get; set; } = 1;
+    public override string ActorName { get; protected set; } = "Bat";
+    public override int HealthPool { get; set; } = 10;
+    public override int HealthCurrent { get; set; } = 10;
+    public override int MinDamage { get; set; } = 1;
+    public override int MaxDamage { get; set; } = 3;
+    public override int Armor { get; set; } = 1;
+    public override int XPValue { get; set; } = 7;
 
     public Bat(
         AnimatedSprite spriteIdle,
         AnimatedSprite spriteMove,
         float xPos,
         float yPos,
-        Func<ActorBase, Vector2, bool> canMoveToWorldPos)
-        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos)
+        Func<ActorBase, Vector2, bool> canMoveToWorldPos,
+        Func<ActorBase, Vector2, ActorBase> getBlockingActorAtWorldPos,
+        int _entityId,
+        char mapKind)
+        : base(spriteIdle, spriteMove, new Vector2(xPos, yPos), canMoveToWorldPos, getBlockingActorAtWorldPos, _entityId, 'b')
     {
     }
-    protected override Vector2? GetDesiredDirection(GameTime gameTime)
+    protected override Vector2? GetDesiredDirection(GameTime gameTime, Random rand)
     {
-        Random rand = new();
+        if (InCombat)
+            return null;
 
         var direction = rand.NextDouble();
-
-        //return null; // För att göra råttorna stillastående, ta bort denna rad för att låta dem röra sig
 
         if (direction >= 0 && direction < 0.25)
             return -Vector2.UnitY; // Up

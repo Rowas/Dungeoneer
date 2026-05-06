@@ -1,67 +1,144 @@
 using Dungeoneer.GameObjects.Bases;
-using Dungeoneer.GameObjects.HelperMethods;
+using Dungeoneer.GameObjects.GameSessions;
+using Dungeoneer.GameObjects.Helpers;
+using Dungeoneer.GameObjects.Pickups;
 using Dungeoneer.GameObjects.Player;
 using Dungeoneer.Maps;
+using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGameGum;
 using MonoGameLibrary;
-using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dungeoneer.Scenes;
 
 public class GameScene : Scene
 {
+    private enum GameState
+    {
+        Playing,
+        Paused,
+        Combat
+    }
+
     private PlayerCharacter _playerCharacter;
-
-    List<ActorBase> _actors = new();
-    List<PropBase> _props = new();
-
-    // The font to use to render normal text.
-    private SpriteFont _font;
-
-    // The font used to render the title text.
-    private SpriteFont _font5x;
-
+    private List<ActorBase> _actors = new();
+    private List<PropBase> _props = new();
     private DungeonMap _dungeonMap;
+    private string _level;
+
+    private GameSceneHudUI _hud;
 
     private Vector2 _cameraPos = Vector2.Zero;
-
-    private float worldScale = 1.0f; // ex 2x
-
     private float CAMERA_SMOOTH_SPEED = 1.5f;
+    private bool _snapCamera = true;
+    const float UiTopPaddingPx = 64f * 2f;
+
+    private float worldScale = 1.0f;
+
+    private float _saturation = 1.0f;
+    private Effect _grayscaleEffect;
+    private const float FADE_SPEED = 0.02f;
+
+    private GameState _state;
+
+    private GameSession _currentSession;
+    private readonly GameSession _loadedSession;
+    private readonly PlayerSessionState _playerSession;
+
+    private const int VisionRadiusTiles = 10;
+    private bool[,] _visibleNow;
+    private bool[,] _explored;
+    private Point _lastFovOrigin = new Point(int.MinValue, int.MinValue);
+
+    private void OnResumeButtonClicked(object sender, EventArgs args)
+    {
+        _state = GameState.Playing;
+    }
+
+    private void OnQuitButtonClicked(object sender, EventArgs args)
+    {
+        Core.ChangeScene(new TitleScene());
+    }
+
+    private void OnSaveLoadClicked(object sender, EventArgs args)
+    {
+        Core.ChangeScene(new SaveLoadScene(true, _currentSession));
+    }
+
+    public GameScene(string level, GameSession session = null, PlayerSessionState playerSession = null)
+    {
+        _loadedSession = session;
+        _level = level;
+        _playerSession = playerSession;
+    }
 
     public override void LoadContent()
     {
-        // Load the font for the standard text.
-        _font = Core.Content.Load<SpriteFont>("fonts/04B_30");
-
-        // Load the font for the title text.
-        _font5x = Content.Load<SpriteFont>("fonts/04B_30_5x");
-
         _dungeonMap = new DungeonMap(64);
         _dungeonMap.LoadContent(Content, "Images/DungeonAtlas");
-        _dungeonMap.LoadMap(Content, "LevelFiles/Level1_w_Boss.txt");
 
-        TextureAtlas atlas = TextureAtlas.FromFile(Content, "images/GameObjectAtlas.xml");
+        if (_loadedSession == null)
+        {
+            _dungeonMap.LoadMap(Content, _level);
 
-        AnimatedSprite pcSpriteIdle = atlas.CreateAnimatedSprite("slime-idle-pink-animation");
-        pcSpriteIdle.Scale = Vector2.One;
-        AnimatedSprite pcSpriteMove = atlas.CreateAnimatedSprite("slime-move-pink-animation");
-        pcSpriteMove.Scale = Vector2.One;
+            if (_playerSession == null)
+            {
+                _playerCharacter = LoadEntities.CreatePlayer(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+            }
+            else
+            {
+                GameSession nextLevel = new();
+                nextLevel.Player = _playerSession;
+                nextLevel.Player.Position = _dungeonMap.PlayerStart;
+                _playerCharacter = LoadEntities.CreatePlayer(nextLevel, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+                _playerCharacter.SkillCD = _playerSession.skillCD;
+            }
 
-        _playerCharacter = new PlayerCharacter(
-            pcSpriteIdle,
-            pcSpriteMove,
-            _dungeonMap.PlayerStart.X,
-            _dungeonMap.PlayerStart.Y,
-            CanActorMoveTo
-        );
+            _actors = LoadEntities.ParseActors(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos, _level);
+            _props = LoadEntities.ParseProps(_dungeonMap, GameAssets.GameObjectAtlas);
+        }
+        else
+        {
+            _dungeonMap.LoadMap(Content, _loadedSession.Level);
 
-        _actors = LoadEntities.ParseActors(_dungeonMap, atlas, CanActorMoveTo);
-        _props = LoadEntities.ParseProps(_dungeonMap, atlas);
+            _cameraPos = _loadedSession.CameraPosition;
 
+            _props = LoadEntities.ParseProps(_loadedSession, GameAssets.GameObjectAtlas);
+            _actors = LoadEntities.ParseActors(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos, _loadedSession.Level);
+            _playerCharacter = LoadEntities.CreatePlayer(_loadedSession, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
+        }
+
+        Exploration();
+
+        if (_loadedSession != null)
+            _explored = GameSessionExtensions.UnpackExplored(_loadedSession.ExploredTiles, _dungeonMap.Columns, _dungeonMap.Rows);
+
+        _playerCharacter.BlockedByActor += (self, blocker) =>
+        {
+            if (blocker != _playerCharacter)
+            {
+                _state = GameState.Combat;
+                StartCombat(blocker);
+            }
+        };
+
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level, _explored, _dungeonMap.Columns, _dungeonMap.Rows);
+
+        _playerCharacter.RestoreCollectedItems(_currentSession.Player.CollectedEquipment);
+
+        _grayscaleEffect = Content.Load<Effect>("effects/grayscaleEffect");
+    }
+
+    public void Exploration()
+    {
+        _visibleNow = new bool[_dungeonMap.Columns, _dungeonMap.Rows];
+        _explored = new bool[_dungeonMap.Columns, _dungeonMap.Rows];
+        _lastFovOrigin = new Point(int.MinValue, int.MinValue);
     }
 
     public override void Initialize()
@@ -69,11 +146,76 @@ public class GameScene : Scene
         // LoadContent is called during base.Initialize().
         base.Initialize();
 
-        //Core.ExitOnEscape = false;
+        InitializeUI();
+
+        Core.ExitOnEscape = false;
+    }
+
+    private void InitializeUI()
+    {
+        // Clear out any previous UI element incase we came here
+        // from a different scene.
+        GumService.Default.Root.Children.Clear();
+
+        // Create the game scene ui instance.
+        _hud = new GameSceneHudUI();
+
+        // Subscribe to the events from the game scene ui.
+        _hud.ResumeButtonClick += OnResumeButtonClicked;
+        _hud.QuitButtonClick += OnQuitButtonClicked;
+
+        _hud.SaveLoadClick += OnSaveLoadClicked;
+    }
+
+    private void TogglePause()
+    {
+        if (_state == GameState.Paused)
+        {
+            // We're now unpausing the game, so hide the pause panel.
+            _hud.HidePausePanel();
+
+            // And set the state back to playing.
+            _state = GameState.Playing;
+        }
+        else
+        {
+            _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level, _explored, _dungeonMap.Columns, _dungeonMap.Rows);
+
+            if (_loadedSession == null)
+                _hud.ShowPausePanel(_currentSession.Level);
+            else
+                _hud.ShowPausePanel(_loadedSession.Level);
+
+            // And set the state to paused.
+            _state = GameState.Paused;
+
+            // Set the grayscale effect saturation to 1.0f
+            _saturation = 1.0f;
+        }
     }
 
     public override void Update(GameTime gameTime)
     {
+        if (_state != GameState.Playing)
+        {
+            // The game is in either a paused or game over state, so
+            // gradually decrease the saturation to create the fading grayscale.
+            _saturation = Math.Max(0.0f, _saturation - FADE_SPEED);
+        }
+
+        // If the pause button is pressed, toggle the pause state.
+        if (GameController.Pause())
+        {
+            TogglePause();
+        }
+
+        // At this point, if the game is paused, just return back early.
+        if (_state == GameState.Paused)
+        {
+            _hud.Update(gameTime);
+            return;
+        }
+
         foreach (var actor in _actors)
         {
             actor.Update(gameTime);
@@ -82,45 +224,136 @@ public class GameScene : Scene
         foreach (var prop in _props)
         {
             prop.Update(gameTime);
+
             if (prop.CanInteract && prop.TryInteract(_playerCharacter))
             {
-                //No additional logic needed here for now
-                //But this is where you would add any special behavior that should happen when the player interacts with a prop.
+                if (prop.MapKind == 'E')
+                {
+                    var exitStairs = prop as ExitStairs;
+                    if (exitStairs != null)
+                    {
+                        switch (_level)
+                        {
+                            case "level1":
+                                _level = "level2";
+                                break;
+                            case "level2":
+                                _level = "level3";
+                                break;
+                            case "level3":
+                                _level = "level4";
+                                break;
+                            case "level4":
+                                _level = "level5";
+                                break;
+                            default:
+                                _level = "level1";
+                                break;
+                        }
+
+                        exitStairs.OnInteract(_level, _currentSession.Player);
+                    }
+                }
+            }
+
+            if (prop.IsCollected)
+            {
+                if (prop.MapKind == 'W')
+                {
+                    _currentSession.Player.CollectedEquipment.Add(new CollectedItemState { ItemKey = "tier-1-sword" });
+                    _hud.CreateInventoryItem("tier-1-sword", _hud._itemContainer);
+                }
+
+                if (prop.MapKind == 'A')
+                {
+                    _currentSession.Player.CollectedEquipment.Add(new CollectedItemState { ItemKey = "tier-1-armor" });
+                    _hud.CreateInventoryItem("tier-1-armor", _hud._itemContainer);
+                }
+            }
+        }
+
+        foreach (var itemKey in _playerCharacter.CollectedItemKeys)
+        {
+            if (_hud._itemContainer.Children.All(child => child.Name != itemKey))
+            {
+                _hud.CreateInventoryItem(itemKey, _hud._itemContainer);
             }
         }
 
         _playerCharacter.Update(gameTime);
 
+        Point origin = ToTile(_playerCharacter.Position);
+
+        // Beräkna bara om spelaren bytt tile (snålare)
+        if (origin != _lastFovOrigin)
+        {
+            _visibleNow = LOS.ComputeVisible(_dungeonMap, origin, VisionRadiusTiles);
+
+            // Fog of war (valfritt men rekommenderat)
+            for (int y = 0; y < _dungeonMap.Rows; y++)
+                for (int x = 0; x < _dungeonMap.Columns; x++)
+                    _explored[x, y] |= _visibleNow[x, y];
+
+            _lastFovOrigin = origin;
+
+            _currentSession.Player.Position = _playerCharacter.Position;
+            _currentSession.CameraPosition = _cameraPos;
+            _currentSession.ExploredTiles = GameSessionExtensions.PackExplored(_explored, _dungeonMap.Columns, _dungeonMap.Rows);
+        }
+
         _cameraPos = Camera.CameraLoc(Core.GraphicsDevice.Viewport, _playerCharacter, _dungeonMap,
-                                        _cameraPos, gameTime, worldScale, CAMERA_SMOOTH_SPEED);
+                                        _cameraPos, gameTime, worldScale, CAMERA_SMOOTH_SPEED, _snapCamera, UiTopPaddingPx);
+
+        _snapCamera = false;
+
+        _hud.SetHp(_playerCharacter.HealthCurrent, _playerCharacter.HealthPool);
+        _hud.SetXp(_playerCharacter.CurrentXP, _playerCharacter.XPToNextLevel);
+        _hud.SetStats(_playerCharacter.MinDamage, _playerCharacter.MaxDamage, _playerCharacter.Armor, _playerCharacter.CurrentLevel);
+        _hud.Update(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
     {
         Matrix cameraTransform =
-            Matrix.CreateTranslation(-_cameraPos.X, -_cameraPos.Y, 0f) *
+            Matrix.CreateTranslation(-_cameraPos.X, -_cameraPos.Y + UiTopPaddingPx, 0f) *
             Matrix.CreateScale(worldScale, worldScale, 1f);
 
+        var gd = Core.GraphicsDevice;
+        var prevScissor = gd.ScissorRectangle;
+        gd.ScissorRectangle = new Rectangle(
+            0,
+            (int)UiTopPaddingPx,
+            gd.Viewport.Width,
+            gd.Viewport.Height - (int)UiTopPaddingPx
+        );
         Core.SpriteBatch.Begin(
             samplerState: SamplerState.PointClamp,
-            transformMatrix: cameraTransform
+            transformMatrix: cameraTransform,
+            rasterizerState: new RasterizerState { ScissorTestEnable = true }
         );
 
-        _dungeonMap.Draw(Core.SpriteBatch);
+        _dungeonMap.Draw(Core.SpriteBatch, _visibleNow, _explored);
 
         _playerCharacter.Draw();
 
         foreach (var actor in _actors)
         {
-            actor.Draw();
+            var t = ToTile(actor.Position);
+            if (_visibleNow != null && t.X >= 0 && t.X < _dungeonMap.Columns && t.Y >= 0 && t.Y < _dungeonMap.Rows && _visibleNow[t.X, t.Y])
+                actor.Draw();
         }
-
         foreach (var prop in _props)
         {
-            prop.Draw();
+            var t = ToTile(prop.Position);
+            if (_visibleNow != null && t.X >= 0 && t.X < _dungeonMap.Columns && t.Y >= 0 && t.Y < _dungeonMap.Rows && _visibleNow[t.X, t.Y])
+                prop.Draw();
         }
 
         Core.SpriteBatch.End();
+
+        gd.ScissorRectangle = prevScissor;
+
+        _hud.Draw();
     }
 
     private Point ToTile(Vector2 worldPos)
@@ -131,7 +364,6 @@ public class GameScene : Scene
     }
     private IEnumerable<ActorBase> EnumerateAllActors()
     {
-        // Viktigt: ta med player också
         yield return _playerCharacter;
         foreach (var actor in _actors)
             yield return actor;
@@ -155,5 +387,34 @@ public class GameScene : Scene
                 return false;
         }
         return true;
+    }
+
+    private ActorBase GetBlockingActorAtWorldPos(ActorBase self, Vector2 candidateWorldPos)
+    {
+        Point candidateTile = ToTile(candidateWorldPos);
+
+        foreach (var other in EnumerateAllActors())
+        {
+            if (ReferenceEquals(other, self)) continue;
+
+            if (ToTile(other.Position) == candidateTile)
+                return other;
+
+            if (other.IsMoving && ToTile(other.TargetPosition) == candidateTile)
+                return other;
+        }
+
+        return null;
+    }
+
+    public bool IsAttackAnimationPlaying()
+    {
+        return _playerCharacter.AttackMade;
+    }
+
+    private void StartCombat(ActorBase monster)
+    {
+        _currentSession = GameSessionExtensions.ParseGameSession(_playerCharacter, _actors, _props, _level, _explored, _dungeonMap.Columns, _dungeonMap.Rows);
+        Core.ChangeScene(new CombatScene(new CombatEncounter(_playerCharacter, monster, _dungeonMap, GameAssets.GameObjectAtlas, _currentSession)));
     }
 }

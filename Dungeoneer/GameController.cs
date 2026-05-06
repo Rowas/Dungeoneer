@@ -57,4 +57,23 @@ public static class GameController
                s_gamePad.IsButtonDown(Buttons.DPadRight) ||
                s_gamePad.IsButtonDown(Buttons.LeftThumbstickRight);
     }
+
+    /// <summary>
+    /// Returns true if the player has triggered the "pause" action.
+    /// </summary>
+    public static bool Pause()
+    {
+        return s_keyboard.WasKeyJustPressed(Keys.Escape) ||
+               s_gamePad.WasButtonJustPressed(Buttons.Start);
+    }
+
+    /// <summary>
+    /// Returns true if the player has triggered the "action" button,
+    /// typically used for menu confirmation.
+    /// </summary>
+    public static bool Action()
+    {
+        return s_keyboard.WasKeyJustPressed(Keys.Enter) ||
+               s_gamePad.WasButtonJustPressed(Buttons.A);
+    }
 }

@@ -13,6 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin Effects/grayscaleEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Effects/grayscaleEffect.fx
+
 #begin Fonts/04B_30_5x.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -60,6 +66,27 @@
 #begin Images/GameObjectAtlas.xml
 /copy:Images/GameObjectAtlas.xml
 
-#begin LevelFiles/Level1_w_Boss.txt
-/copy:LevelFiles/Level1_w_Boss.txt
+#begin Images/GameOverBackground.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/GameOverBackground.png
+
+#begin LevelFiles/CombatScene.txt
+/copy:LevelFiles/CombatScene.txt
+
+#begin LevelFiles/Level1.txt
+/copy:LevelFiles/Level1.txt
+
+#begin LevelFiles/Level2.txt
+/copy:LevelFiles/Level2.txt
+
+#begin LevelFiles/Level3.txt
+/copy:LevelFiles/Level3.txt
 
