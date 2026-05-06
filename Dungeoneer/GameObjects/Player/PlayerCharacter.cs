@@ -91,6 +91,7 @@ public class PlayerCharacter : ActorBase
         CurrentLevel = session.Player.CurrentLevel;
         CurrentXP = session.Player.CurrentXP;
         XPToNextLevel = session.Player.XPToNextLevel;
+        SkillCD = session.Player.skillCD;
     }
 
     public void RestoreCollectedItems(IEnumerable<CollectedItemState> collectedEquipment)

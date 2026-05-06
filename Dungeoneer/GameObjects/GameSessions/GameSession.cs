@@ -52,6 +52,7 @@ public sealed class PlayerSessionState
     public int MinDamage { get; set; }
     public int MaxDamage { get; set; }
     public int Armor { get; set; }
+    public int skillCD { get; set; }
     // Lägg till inventory, guld, osv. när det finns.
 }
 /// <summary>Motsvarar en spawnad fiende i världen.</summary>
@@ -101,6 +102,7 @@ public static class GameSessionCombatExtensions
     public static void ApplyCombatOutcome(this GameSession session, CombatOutcome outcome)
     {
         session.Player.HealthCurrent = outcome.PlayerHealthAfter;
+
         for (int i = 0; i < session.Monsters.Count; i++)
         {
             if (session.Monsters[i].EntityId != outcome.MonsterEntityId)
@@ -141,7 +143,8 @@ public static class GameSessionExtensions
                 XPToNextLevel = _playerCharacter.XPToNextLevel,
                 MinDamage = _playerCharacter.MinDamage,
                 MaxDamage = _playerCharacter.MaxDamage,
-                Armor = _playerCharacter.Armor
+                Armor = _playerCharacter.Armor,
+                skillCD = _playerCharacter.SkillCD,
             },
             Monsters = new List<MonsterSessionState>(),
             Props = new List<PropSessionState>(),

@@ -129,9 +129,9 @@ public abstract class ActorBase
         double scalingFactor = currentLevel switch
         {
             "level1" => 1.0,
-            "level2" => 1.2,
-            "level3" => 1.5,
-            "level4" => 1.8,
+            "level2" => 1.35,
+            "level3" => 1.65,
+            "level4" => 1.95,
             _ => 1.0
         };
 
@@ -319,7 +319,7 @@ public abstract class ActorBase
             if (result >= 0.95)
                 damage = 999; // Execute Target
 
-            if (target.HealthCurrent / (double)target.HealthPool <= 0.2 && result >= 0.25)
+            if (target.HealthCurrent / (double)target.HealthPool <= 0.2 && result >= 0.8)
                 damage = 999; // Increased execution chance on low health targets
 
             if (SkillCD == 0)

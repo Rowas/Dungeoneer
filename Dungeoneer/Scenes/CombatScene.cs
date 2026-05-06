@@ -91,34 +91,12 @@ public class CombatScene : Scene
                 MonsterDefeated = false
             };
 
+            if (_encounter.Player.SkillCD > 0)
+                _encounter.Session.Player.skillCD = _encounter.Player.SkillCD;
+
             _encounter.Session.ApplyCombatOutcome(outcome);
 
             Core.ChangeScene(new GameScene(_encounter.Session.Level, _encounter.Session));
-        }
-
-        if (_hudUI.Defend == true)
-        {
-            actionRoll = Rand.NextDouble();
-            if (actionRoll > 0.25)
-            {
-                CombatResult = _encounter.Monster.Attack(_encounter.Player, true);
-
-
-                GetCombatOutcome(_encounter.Player, CombatResult);
-            }
-            else
-            {
-                CombatResult = new CombatActionResult(
-                    CombatActionType.Defend,
-                    _encounter.Monster.EntityId,
-                    CombatActionType.Defend,
-                    _encounter.Player.EntityId,
-                    CombatOutcomeKind.Rest,
-                    0
-                );
-            }
-
-            _hudUI.PrintCombatLog(CombatResult, _encounter);
         }
 
         if (_hudUI.Skill == true)
@@ -128,11 +106,13 @@ public class CombatScene : Scene
 
             actionRoll = Rand.NextDouble();
 
-            if (actionRoll > 0.25)
+            if (actionRoll > 0.5)
             {
                 CombatResult = _encounter.Player.Attack(_encounter.Monster, true, true);
 
                 GetCombatOutcome(_encounter.Monster, CombatResult);
+
+                _hudUI.PrintCombatLog(CombatResult, _encounter);
             }
             else
             {
@@ -141,23 +121,28 @@ public class CombatScene : Scene
 
                 _hudUI.PrintCombatLog(CombatResult, _encounter);
 
-                CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
+                if (_encounter.Monster.HealthCurrent > 0)
+                {
+                    CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
 
-                GetCombatOutcome(_encounter.Player, CombatResult);
+                    GetCombatOutcome(_encounter.Player, CombatResult);
+
+                    _hudUI.PrintCombatLog(CombatResult, _encounter);
+                }
             }
-
-            _hudUI.PrintCombatLog(CombatResult, _encounter);
         }
 
         if (_hudUI.Attack == true)
         {
             actionRoll = Rand.NextDouble();
 
-            if (actionRoll > 0.25)
+            if (actionRoll > 0.5)
             {
                 CombatResult = _encounter.Player.Attack(_encounter.Monster, true);
 
                 GetCombatOutcome(_encounter.Monster, CombatResult);
+
+                _hudUI.PrintCombatLog(CombatResult, _encounter);
             }
             else
             {
@@ -166,16 +151,23 @@ public class CombatScene : Scene
 
                 _hudUI.PrintCombatLog(CombatResult, _encounter);
 
-                CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
+                if (_encounter.Monster.HealthCurrent > 0)
+                {
+                    CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
 
-                GetCombatOutcome(_encounter.Player, CombatResult);
+                    GetCombatOutcome(_encounter.Player, CombatResult);
+
+                    _hudUI.PrintCombatLog(CombatResult, _encounter);
+                }
             }
+
 
             if (_encounter.Player.SkillCD > 0)
                 _encounter.Player.SkillCD--;
-
-            _hudUI.PrintCombatLog(CombatResult, _encounter);
         }
+
+        if (_hudUI.EndCombat)
+            EndCombat();
 
         _encounter.Player.Update(gameTime);
         _encounter.Monster.Update(gameTime);
@@ -203,19 +195,20 @@ public class CombatScene : Scene
         {
             Core.ChangeScene(new GameOverScene(PreviousLevel));
         }
-        else
+    }
+
+    private void EndCombat()
+    {
+        outcome = new CombatOutcome()
         {
-            outcome = new CombatOutcome()
-            {
-                PlayerHealthAfter = _encounter.Player.HealthCurrent,
-                MonsterEntityId = _encounter.Monster.EntityId,
-                MonsterDefeated = true,
-                XPGained = _encounter.Monster.XPValue,
-            };
+            PlayerHealthAfter = _encounter.Player.HealthCurrent,
+            MonsterEntityId = _encounter.Monster.EntityId,
+            MonsterDefeated = true,
+            XPGained = _encounter.Monster.XPValue,
+        };
 
-            _encounter.Session.ApplyCombatOutcome(outcome);
+        _encounter.Session.ApplyCombatOutcome(outcome);
 
-            Core.ChangeScene(new LevelUpScene(PreviousLevel, _encounter.Session));
-        }
+        Core.ChangeScene(new LevelUpScene(PreviousLevel, _encounter.Session));
     }
 }

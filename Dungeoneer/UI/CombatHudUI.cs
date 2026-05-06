@@ -16,12 +16,15 @@ namespace Dungeoneer.UI;
 
 public class CombatHudUI : ContainerRuntime
 {
-    private ContainerRuntime _buttonColumn;
+    private ContainerRuntime _combatButtonColumn;
+    private ContainerRuntime _endOfCombatButtonColumn;
 
     private AnimatedButton _attackButton;
     private AnimatedButton _skillButton;
     private AnimatedButton _fleeButton;
+    private AnimatedButton _endCombatButton;
 
+    private TextRuntime _combatEndedText;
     private TextRuntime _skillCooldownLabel;
     private TextRuntime _monsterHP;
     private TextRuntime _playerHP;
@@ -44,6 +47,7 @@ public class CombatHudUI : ContainerRuntime
     public bool Attack { get; set; } = false;
     public bool Defend { get; set; } = false;
     public bool Skill { get; set; } = false;
+    public bool EndCombat { get; set; } = false;
     private int _lastSkillCd { get; set; } = -1;
 
     public CombatHudUI()
@@ -84,12 +88,12 @@ public class CombatHudUI : ContainerRuntime
         _combatLog2.Text = " ";
         LogStack.AddChild(_combatLog2);
 
-        _buttonColumn = CreateButtonColumn();
-        _buttonColumn.Anchor(Gum.Wireframe.Anchor.Center);
-        controlsStack.AddChild(_buttonColumn);
+        _combatButtonColumn = CreateButtonColumn();
+        controlsStack.AddChild(_combatButtonColumn);
 
         _combatCommandsPanel = CreateCommandPanel(GameAssets.GameObjectAtlas);
-        _combatCommandsPanel.AddChild(_buttonColumn);
+        _combatCommandsPanel.AddChild(_combatButtonColumn);
+
         controlsStack.AddChild(_combatCommandsPanel.Visual);
 
         // Attack-Button
@@ -101,7 +105,7 @@ public class CombatHudUI : ContainerRuntime
         _attackButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
         _attackButton.Y = 25;
 
-        _buttonColumn.AddChild(_attackButton);
+        _combatButtonColumn.AddChild(_attackButton);
 
         // Use-Skill-Button
         _skillButton = new AnimatedButton(GameAssets.GameObjectAtlas);
@@ -111,7 +115,7 @@ public class CombatHudUI : ContainerRuntime
         _skillButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
         _skillButton.Y = 50;
 
-        _buttonColumn.AddChild(_skillButton);
+        _combatButtonColumn.AddChild(_skillButton);
 
         _skillCooldownLabel = LogLine(); // eller en egen CreateSmallText()
         _skillCooldownLabel.Text = " ";  // tomt initialt
@@ -126,7 +130,7 @@ public class CombatHudUI : ContainerRuntime
         _skillCooldownLabel.HorizontalAlignment = HorizontalAlignment.Center;
 
         // Lägg till efter knappen så den ritas ovanpå (Z-order via add-order)
-        _buttonColumn.AddChild(_skillCooldownLabel);
+        _combatButtonColumn.AddChild(_skillCooldownLabel);
 
         // Flee-Button
         _fleeButton = new AnimatedButton(GameAssets.GameObjectAtlas);
@@ -136,7 +140,33 @@ public class CombatHudUI : ContainerRuntime
         _fleeButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
         _fleeButton.Y = 75;
 
-        _buttonColumn.AddChild(_fleeButton);
+        _combatButtonColumn.AddChild(_fleeButton);
+
+        _endOfCombatButtonColumn = CreateButtonColumn();
+        _combatCommandsPanel.AddChild(_endOfCombatButtonColumn);
+
+        _endCombatButton = new AnimatedButton(GameAssets.GameObjectAtlas);
+        _endCombatButton.Text = "End Combat";
+        _endCombatButton.Click += HandleEndCombat;
+        _endCombatButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _endCombatButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _endCombatButton.Y = 75;
+
+        _endOfCombatButtonColumn.AddChild(_endCombatButton);
+
+        _combatEndedText = LogLine();
+        _combatEndedText.Anchor(Gum.Wireframe.Anchor.Center);
+        _combatEndedText.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _combatEndedText.Text = "Combat is Over!";
+        _combatEndedText.Y = _skillButton.Y;          // 50
+        _combatEndedText.XUnits = _skillButton.XUnits; // om du använder XUnits
+        _combatEndedText.X = _skillButton.X;          // om du använder X
+        _combatEndedText.HorizontalAlignment = HorizontalAlignment.Center;
+
+        _endOfCombatButtonColumn.AddChild(_combatEndedText);
+
+        _endOfCombatButtonColumn.Visible = false;
+        _endOfCombatButtonColumn.IsEnabled = false;
     }
 
     private Panel CreateCommandPanel(TextureAtlas atlas)
@@ -224,6 +254,8 @@ public class CombatHudUI : ContainerRuntime
         {
             _combatLog1.Text = "You have encountered a " + encounter.Monster.ActorName + "!";
             _isFirstUpdate = false;
+
+            UpdateSkillCooldown(encounter.Player.SkillCD);
         }
 
         _playerHP.Text = string.Format(s_hpFormat,
@@ -305,7 +337,20 @@ public class CombatHudUI : ContainerRuntime
                 _combatLog1.Text += $" {GetActorName(encounter, combatResult.TargetEntityId)} was defending!";
             }
         }
+
+        if (encounter.Monster.HealthCurrent <= 0)
+        {
+            _combatLog1.Text += $" {GetActorName(encounter, combatResult.TargetEntityId)} was defeated!";
+            _combatButtonColumn.Visible = false;
+            _combatButtonColumn.IsEnabled = false;
+
+            _endOfCombatButtonColumn.IsEnabled = true;
+            _endOfCombatButtonColumn.Visible = true;
+
+            _endCombatButton.IsFocused = true;
+        }
     }
+
     private string GetActorName(CombatEncounter encounter, int entityId)
     {
         if (encounter.Player.EntityId == entityId)
@@ -345,5 +390,10 @@ public class CombatHudUI : ContainerRuntime
             return;
 
         Attack = true;
+    }
+
+    private void HandleEndCombat(object sender, EventArgs e)
+    {
+        EndCombat = true;
     }
 }
