@@ -25,7 +25,6 @@ public class GameOverScene : Scene
 
     public override void Initialize()
     {
-        // LoadContent is called during base.Initialize().
         base.Initialize();
 
         GumService.Default.Root.Children.Clear();

@@ -47,12 +47,10 @@ public class SaveLoadScene : Scene
     {
         if (e.Item2 == "save")
         {
-            // Handle save game logic here
             _saveLoadService.SaveGame(_currentSession, e.Item1);
         }
         else if (e.Item2 == "load")
         {
-            // Handle load game logic here
             if (_saveLoadService.SaveGameExists(e.Item1))
             {
                 _currentSession = _saveLoadService.LoadGame(e.Item1);

@@ -96,7 +96,6 @@ public class CombatHudUI : ContainerRuntime
 
         controlsStack.AddChild(_combatCommandsPanel.Visual);
 
-        // Attack-Button
         _attackButton = new AnimatedButton(GameAssets.GameObjectAtlas);
         _attackButton.Text = "Attack!";
         _attackButton.Click += HandleAttack;
@@ -107,7 +106,6 @@ public class CombatHudUI : ContainerRuntime
 
         _combatButtonColumn.AddChild(_attackButton);
 
-        // Use-Skill-Button
         _skillButton = new AnimatedButton(GameAssets.GameObjectAtlas);
         _skillButton.Text = "Bite!";
         _skillButton.Click += HandleSkill;
@@ -117,22 +115,19 @@ public class CombatHudUI : ContainerRuntime
 
         _combatButtonColumn.AddChild(_skillButton);
 
-        _skillCooldownLabel = LogLine(); // eller en egen CreateSmallText()
-        _skillCooldownLabel.Text = " ";  // tomt initialt
+        _skillCooldownLabel = LogLine();
+        _skillCooldownLabel.Text = " ";
         _skillCooldownLabel.Visible = false;
 
-        // Lägg den på samma Y som skill-knappen (50%) men finjustera med pixel-offset så den hamnar “på knappen”
         _skillCooldownLabel.Anchor(Gum.Wireframe.Anchor.Center);
         _skillCooldownLabel.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _skillCooldownLabel.Y = _skillButton.Y;          // 50
-        _skillCooldownLabel.XUnits = _skillButton.XUnits; // om du använder XUnits
-        _skillCooldownLabel.X = _skillButton.X;          // om du använder X
+        _skillCooldownLabel.Y = _skillButton.Y;
+        _skillCooldownLabel.XUnits = _skillButton.XUnits;
+        _skillCooldownLabel.X = _skillButton.X;
         _skillCooldownLabel.HorizontalAlignment = HorizontalAlignment.Center;
 
-        // Lägg till efter knappen så den ritas ovanpå (Z-order via add-order)
         _combatButtonColumn.AddChild(_skillCooldownLabel);
 
-        // Flee-Button
         _fleeButton = new AnimatedButton(GameAssets.GameObjectAtlas);
         _fleeButton.Text = "Flee!";
         _fleeButton.Click += HandleFlee;
@@ -158,9 +153,9 @@ public class CombatHudUI : ContainerRuntime
         _combatEndedText.Anchor(Gum.Wireframe.Anchor.Center);
         _combatEndedText.YUnits = Gum.Converters.GeneralUnitType.Percentage;
         _combatEndedText.Text = "Combat is Over!";
-        _combatEndedText.Y = _skillButton.Y;          // 50
-        _combatEndedText.XUnits = _skillButton.XUnits; // om du använder XUnits
-        _combatEndedText.X = _skillButton.X;          // om du använder X
+        _combatEndedText.Y = _skillButton.Y;
+        _combatEndedText.XUnits = _skillButton.XUnits;
+        _combatEndedText.X = _skillButton.X;
         _combatEndedText.HorizontalAlignment = HorizontalAlignment.Center;
 
         _endOfCombatButtonColumn.AddChild(_combatEndedText);
@@ -270,12 +265,10 @@ public class CombatHudUI : ContainerRuntime
 
     private void UpdateSkillCooldown(int cd)
     {
-        // Uppdatera label-text endast om värdet ändras (valfritt men bra)
         bool changed = cd != _lastSkillCd;
 
         if (cd > 0)
         {
-            // Se till att knappen inte går att välja
             if (_skillButton.IsFocused)
                 _attackButton.IsFocused = true;
 

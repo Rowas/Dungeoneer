@@ -1,4 +1,5 @@
-﻿using Dungeoneer.UI;
+﻿using Dungeoneer.GameObjects.Helpers;
+using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameGum;
@@ -11,6 +12,14 @@ namespace Dungeoneer.Scenes;
 public class TitleScene : Scene
 {
     private TitleSceneHudUI _titleSceneHudUI;
+
+    private const string DUNGEON_TEXT = "Dungeoneer";
+    private const string SLIME_TEXT = "Into the Deep";
+
+    private Vector2 _dungeonTextPos;
+    private Vector2 _dungeonTextOrigin;
+    private Vector2 _slimeTextPos;
+    private Vector2 _slimeTextOrigin;
 
     public override void LoadContent()
     {
@@ -26,6 +35,20 @@ public class TitleScene : Scene
         InitializeUI();
 
         Core.ExitOnEscape = false;
+
+        var vp = Core.GraphicsDevice.Viewport;
+
+        float halfWidth = vp.Width * 0.5f;
+        float quarterHeight = vp.Height * 0.25f;
+        float thirdHeight = vp.Height * 0.33f;
+
+        Vector2 size = GameAssets.Font5x.MeasureString(DUNGEON_TEXT);
+        _dungeonTextPos = new Vector2(halfWidth, quarterHeight);
+        _dungeonTextOrigin = size * 0.5f;
+
+        size = GameAssets.Font5x.MeasureString(SLIME_TEXT);
+        _slimeTextPos = new Vector2(halfWidth, thirdHeight);
+        _slimeTextOrigin = size * 0.5f;
     }
 
     public override void Draw(GameTime gameTime)
@@ -34,6 +57,14 @@ public class TitleScene : Scene
 
         Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
+        Color dropShadowColor = Color.Black * 0.5f;
+
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, DUNGEON_TEXT, _dungeonTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _dungeonTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, DUNGEON_TEXT, _dungeonTextPos, Color.HotPink, 0.0f, _dungeonTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
+
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, SLIME_TEXT, _slimeTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _slimeTextOrigin, 0.33f, SpriteEffects.None, 1.0f);
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, SLIME_TEXT, _slimeTextPos, Color.HotPink, 0.0f, _slimeTextOrigin, 0.33f, SpriteEffects.None, 1.0f);
+
         Core.SpriteBatch.End();
 
         _titleSceneHudUI.Draw();
@@ -41,14 +72,10 @@ public class TitleScene : Scene
 
     private void InitializeUI()
     {
-        // Clear out any previous UI element incase we came here
-        // from a different scene.
         GumService.Default.Root.Children.Clear();
 
-        // Create the game scene ui instance.
         _titleSceneHudUI = new TitleSceneHudUI();
 
-        // Subscribe to the events from the game scene ui.
         _titleSceneHudUI.StartGameButtonClick += StartGame;
         _titleSceneHudUI.LoadGameButtonClick += LoadGame;
         _titleSceneHudUI.CreditsButtonClick += ShowCredits;
