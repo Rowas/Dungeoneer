@@ -143,7 +143,6 @@ public class GameScene : Scene
 
     public override void Initialize()
     {
-        // LoadContent is called during base.Initialize().
         base.Initialize();
 
         InitializeUI();
@@ -153,14 +152,10 @@ public class GameScene : Scene
 
     private void InitializeUI()
     {
-        // Clear out any previous UI element incase we came here
-        // from a different scene.
         GumService.Default.Root.Children.Clear();
 
-        // Create the game scene ui instance.
         _hud = new GameSceneHudUI();
 
-        // Subscribe to the events from the game scene ui.
         _hud.ResumeButtonClick += OnResumeButtonClicked;
         _hud.QuitButtonClick += OnQuitButtonClicked;
 
@@ -171,10 +166,8 @@ public class GameScene : Scene
     {
         if (_state == GameState.Paused)
         {
-            // We're now unpausing the game, so hide the pause panel.
             _hud.HidePausePanel();
 
-            // And set the state back to playing.
             _state = GameState.Playing;
         }
         else
@@ -186,10 +179,8 @@ public class GameScene : Scene
             else
                 _hud.ShowPausePanel(_loadedSession.Level);
 
-            // And set the state to paused.
             _state = GameState.Paused;
 
-            // Set the grayscale effect saturation to 1.0f
             _saturation = 1.0f;
         }
     }
@@ -198,18 +189,14 @@ public class GameScene : Scene
     {
         if (_state != GameState.Playing)
         {
-            // The game is in either a paused or game over state, so
-            // gradually decrease the saturation to create the fading grayscale.
             _saturation = Math.Max(0.0f, _saturation - FADE_SPEED);
         }
 
-        // If the pause button is pressed, toggle the pause state.
         if (GameController.Pause())
         {
             TogglePause();
         }
 
-        // At this point, if the game is paused, just return back early.
         if (_state == GameState.Paused)
         {
             _hud.Update(gameTime);
@@ -221,6 +208,7 @@ public class GameScene : Scene
             actor.Update(gameTime);
         }
 
+        // Hiskelig lösning som behöver förbättras.
         foreach (var prop in _props)
         {
             prop.Update(gameTime);
@@ -284,12 +272,10 @@ public class GameScene : Scene
 
         Point origin = ToTile(_playerCharacter.Position);
 
-        // Beräkna bara om spelaren bytt tile (snålare)
         if (origin != _lastFovOrigin)
         {
             _visibleNow = LOS.ComputeVisible(_dungeonMap, origin, VisionRadiusTiles);
 
-            // Fog of war (valfritt men rekommenderat)
             for (int y = 0; y < _dungeonMap.Rows; y++)
                 for (int x = 0; x < _dungeonMap.Columns; x++)
                     _explored[x, y] |= _visibleNow[x, y];
@@ -370,19 +356,18 @@ public class GameScene : Scene
     }
     private bool CanActorMoveTo(ActorBase self, Vector2 candidateWorldPos)
     {
-        // 1) Terräng
         if (!_dungeonMap.IsWalkable(candidateWorldPos))
             return false;
         Point candidateTile = ToTile(candidateWorldPos);
-        // 2) Occupancy av andra actors
+
         foreach (var other in EnumerateAllActors())
         {
             if (ReferenceEquals(other, self))
                 continue;
-            // blockerad av någons nuvarande tile
+
             if (ToTile(other.Position) == candidateTile)
                 return false;
-            // blockerad av tile som någon redan är på väg till
+
             if (other.IsMoving && ToTile(other.TargetPosition) == candidateTile)
                 return false;
         }

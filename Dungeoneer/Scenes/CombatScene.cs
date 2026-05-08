@@ -69,7 +69,7 @@ public class CombatScene : Scene
             samplerState: SamplerState.PointClamp
         );
 
-        _combatMap.Draw(Core.SpriteBatch, true);
+        _combatMap.Draw(Core.SpriteBatch);
 
         _encounter.Player.Draw(true);
         _encounter.Monster.Draw(true);
@@ -193,7 +193,7 @@ public class CombatScene : Scene
 
         if (ActorToCheck.ActorName == _encounter.Player.ActorName)
         {
-            Core.ChangeScene(new GameOverScene(PreviousLevel));
+            Core.ChangeScene(new GameOverScene());
         }
     }
 

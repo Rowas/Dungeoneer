@@ -34,13 +34,15 @@ public class Bat : ActorBase
 
         var direction = rand.NextDouble();
 
-        if (direction >= 0 && direction < 0.25)
+        if (direction >= 0 && direction < 0.2)
             return -Vector2.UnitY; // Up
-        else if (direction >= 0.25 && direction < 0.5)
+        else if (direction >= 0.2 && direction < 0.4)
             return Vector2.UnitY; // Down
-        else if (direction >= 0.5 && direction < 0.75)
+        else if (direction >= 0.4 && direction < 0.6)
             return -Vector2.UnitX; // Left
-        else
+        else if (direction >= 0.6 && direction < 0.8)
             return Vector2.UnitX; // Right
+        else
+            return null;
     }
 }

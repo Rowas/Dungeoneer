@@ -129,9 +129,9 @@ public abstract class ActorBase
         double scalingFactor = currentLevel switch
         {
             "level1" => 1.0,
-            "level2" => 1.35,
-            "level3" => 1.65,
-            "level4" => 1.95,
+            "level2" => 1.5,
+            "level3" => 2.0,
+            "level4" => 2.5,
             _ => 1.0
         };
 
@@ -144,7 +144,12 @@ public abstract class ActorBase
         MinDamage = (int)(MinDamage * scalingFactor);
         MaxDamage = (int)(MaxDamage * scalingFactor);
         Armor = (int)(Armor * scalingFactor);
-        XPValue = (int)(XPValue * scalingFactor);
+        if (scalingFactor > 1.0)
+        {
+            scalingFactor = scalingFactor * 0.75;
+
+            XPValue = (int)(XPValue * scalingFactor);
+        }
     }
 
     public Vector2 SpriteDrawPosition => GetDrawPosition();

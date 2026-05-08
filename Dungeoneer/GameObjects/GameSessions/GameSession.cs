@@ -7,33 +7,16 @@ using System.Linq;
 
 namespace Dungeoneer.GameObjects.GameSessions;
 
-/// <summary>
-/// Långlivat tillstånd för en körning (och framtida sparning).
-/// Innehåller ingen grafik, inga ActorBase-referenser.
-/// </summary>
 public sealed class GameSession
 {
-    /// <summary>Öka när sparfilsformat ändras.</summary>
     public int SaveVersion { get; set; } = 1;
-
-    // --- Nivå ---
-    /// <summary>Relativt Content Root, t.ex. LevelFiles/Level1.txt</summary>
     public string Level { get; set; } = string.Empty;
     public int TileSize { get; set; } = 64;
-
-    // --- Kamera ---
     public Vector2 CameraPosition { get; set; }
-
-    // --- Spelare ---
     public PlayerSessionState Player { get; set; } = new();
-
-    // --- Entiteter (fiender m.m.) ---
     public List<MonsterSessionState> Monsters { get; set; } = new();
 
-    // --- Föremål på marken ---
     public List<PropSessionState> Props { get; set; } = new();
-
-    // --- Hjälp: nästa id vid spawn (om ni inte räknar från kartan) ---
     public int NextEntityId { get; set; } = 1;
     public int TakeNextEntityId() => NextEntityId++;
     public byte[] ExploredTiles { get; set; }
@@ -53,13 +36,11 @@ public sealed class PlayerSessionState
     public int MaxDamage { get; set; }
     public int Armor { get; set; }
     public int skillCD { get; set; }
-    // Lägg till inventory, guld, osv. när det finns.
 }
-/// <summary>Motsvarar en spawnad fiende i världen.</summary>
+
 public sealed class MonsterSessionState
 {
     public int EntityId { get; set; }
-    /// <summary>Samma tecken som i kartfilen / Entities, t.ex. 'r', 'B'.</summary>
     public char MapKind { get; set; }
     public Vector2 Position { get; set; }
     public bool IsAlive { get; set; } = true;
@@ -69,7 +50,6 @@ public sealed class MonsterSessionState
 public sealed class PropSessionState
 {
     public int EntityId { get; set; }
-    /// <summary>t.ex. 'P', 'F', 'A', 'W'</summary>
     public char MapKind { get; set; }
     public Vector2 Position { get; set; }
     public bool IsCollected { get; set; }
@@ -89,7 +69,6 @@ public sealed class CombatOutcome
     public bool MonsterDefeated { get; set; }
     public int MonsterHealthAfter { get; set; }
     public int XPGained { get; set; }
-    // Loot, xp, etc. senare.
 }
 
 public sealed class CollectedItemState

@@ -74,6 +74,7 @@ public static class GameController
     public static bool Action()
     {
         return s_keyboard.WasKeyJustPressed(Keys.Enter) ||
+               s_keyboard.WasKeyJustPressed(Keys.Space) ||
                s_gamePad.WasButtonJustPressed(Buttons.A);
     }
 }

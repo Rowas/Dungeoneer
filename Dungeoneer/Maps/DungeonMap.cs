@@ -45,11 +45,6 @@ public class DungeonMap
         7, // 15  ╬  All four sides (cross)
     };
 
-    private static readonly int[] _combatWallBitmaskToTile = new int[2]
-    {
-        22, 29
-    };
-
     private static readonly int[] _floorTileVariants = { 0, 1, 2, 3 };
 
     public DungeonMap(int tileSize = 64)
@@ -117,7 +112,8 @@ public class DungeonMap
         }
     }
 
-    public void Draw(SpriteBatch spriteBatch, bool isCombat = false)
+    // Draw Combat Map Draw
+    public void Draw(SpriteBatch spriteBatch)
     {
         for (int y = 0; y < Rows; y++)
         {
@@ -128,13 +124,7 @@ public class DungeonMap
 
                 Vector2 position = new Vector2((float)x * TileSize, (float)y * TileSize);
 
-                if (cell == WALL && isCombat == false)
-                {
-                    int bitmask = ComputeWallBitmask(x, y);
-                    TextureRegion tile = _wallTileset.GetTile(_wallBitmaskToTile[bitmask]);
-                    tile.Draw(spriteBatch, position, Color.White);
-                }
-                else if (cell == WALL && isCombat == true)
+                if (cell == WALL)
                 {
                     int bitmask = ComputeWallBitmask(x, y);
                     int combatTileIndex = PickCombatWallTileIndex(bitmask);
@@ -151,7 +141,8 @@ public class DungeonMap
         }
     }
 
-    public void Draw(SpriteBatch spriteBatch, bool[,] visibleNow, bool[,] explored = null, bool isCombat = false)
+    // General Game Map Draw
+    public void Draw(SpriteBatch spriteBatch, bool[,] visibleNow, bool[,] explored = null)
     {
         for (int y = 0; y < Rows; y++)
         {
@@ -171,17 +162,10 @@ public class DungeonMap
 
                 Vector2 position = new Vector2(x * TileSize, y * TileSize);
 
-                if (cell == WALL && isCombat == false)
+                if (cell == WALL)
                 {
                     int bitmask = ComputeWallBitmask(x, y);
                     TextureRegion tile = _wallTileset.GetTile(_wallBitmaskToTile[bitmask]);
-                    tile.Draw(spriteBatch, position, tint);
-                }
-                else if (cell == WALL && isCombat == true)
-                {
-                    int bitmask = ComputeWallBitmask(x, y);
-                    int combatTileIndex = PickCombatWallTileIndex(bitmask);
-                    TextureRegion tile = _wallTileset.GetTile(combatTileIndex);
                     tile.Draw(spriteBatch, position, tint);
                 }
                 else
