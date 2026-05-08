@@ -13,13 +13,13 @@ public class TitleScene : Scene
 {
     private TitleSceneHudUI _titleSceneHudUI;
 
-    private const string DUNGEON_TEXT = "Dungeoneer";
-    private const string SLIME_TEXT = "Into the Deep";
+    private const string PRIMARY_TEXT = "Dungeoneer";
+    private const string SUB_TEXT = "Into the Deep";
 
-    private Vector2 _dungeonTextPos;
-    private Vector2 _dungeonTextOrigin;
-    private Vector2 _slimeTextPos;
-    private Vector2 _slimeTextOrigin;
+    private Vector2 _primaryTextPos;
+    private Vector2 _primaryTextOrigin;
+    private Vector2 _subTextPos;
+    private Vector2 _subTextOrigin;
 
     public override void LoadContent()
     {
@@ -42,13 +42,13 @@ public class TitleScene : Scene
         float quarterHeight = vp.Height * 0.25f;
         float thirdHeight = vp.Height * 0.33f;
 
-        Vector2 size = GameAssets.Font5x.MeasureString(DUNGEON_TEXT);
-        _dungeonTextPos = new Vector2(halfWidth, quarterHeight);
-        _dungeonTextOrigin = size * 0.5f;
+        Vector2 size = GameAssets.Font5x.MeasureString(PRIMARY_TEXT);
+        _primaryTextPos = new Vector2(halfWidth, quarterHeight);
+        _primaryTextOrigin = size * 0.5f;
 
-        size = GameAssets.Font5x.MeasureString(SLIME_TEXT);
-        _slimeTextPos = new Vector2(halfWidth, thirdHeight);
-        _slimeTextOrigin = size * 0.5f;
+        size = GameAssets.Font5x.MeasureString(SUB_TEXT);
+        _subTextPos = new Vector2(halfWidth, thirdHeight);
+        _subTextOrigin = size * 0.5f;
     }
 
     public override void Draw(GameTime gameTime)
@@ -59,11 +59,11 @@ public class TitleScene : Scene
 
         Color dropShadowColor = Color.Black * 0.5f;
 
-        Core.SpriteBatch.DrawString(GameAssets.Font5x, DUNGEON_TEXT, _dungeonTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _dungeonTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
-        Core.SpriteBatch.DrawString(GameAssets.Font5x, DUNGEON_TEXT, _dungeonTextPos, Color.HotPink, 0.0f, _dungeonTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, PRIMARY_TEXT, _primaryTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _primaryTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, PRIMARY_TEXT, _primaryTextPos, Color.HotPink, 0.0f, _primaryTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
 
-        Core.SpriteBatch.DrawString(GameAssets.Font5x, SLIME_TEXT, _slimeTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _slimeTextOrigin, 0.33f, SpriteEffects.None, 1.0f);
-        Core.SpriteBatch.DrawString(GameAssets.Font5x, SLIME_TEXT, _slimeTextPos, Color.HotPink, 0.0f, _slimeTextOrigin, 0.33f, SpriteEffects.None, 1.0f);
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, SUB_TEXT, _subTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _subTextOrigin, 0.33f, SpriteEffects.None, 1.0f);
+        Core.SpriteBatch.DrawString(GameAssets.Font5x, SUB_TEXT, _subTextPos, Color.HotPink, 0.0f, _subTextOrigin, 0.33f, SpriteEffects.None, 1.0f);
 
         Core.SpriteBatch.End();
 

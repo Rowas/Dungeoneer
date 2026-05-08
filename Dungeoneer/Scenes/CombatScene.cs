@@ -193,7 +193,7 @@ public class CombatScene : Scene
 
         if (ActorToCheck.ActorName == _encounter.Player.ActorName)
         {
-            Core.ChangeScene(new GameOverScene(PreviousLevel));
+            Core.ChangeScene(new GameOverScene());
         }
     }
 

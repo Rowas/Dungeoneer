@@ -14,11 +14,8 @@ public class GameOverHudUI : ContainerRuntime
     private AnimatedButton _restartButton;
     private AnimatedButton _mainMenuButton;
 
-    private string _previousLevel;
-
-    public GameOverHudUI(string previousLevel)
+    public GameOverHudUI()
     {
-        _previousLevel = previousLevel;
         Dock(Gum.Wireframe.Dock.Fill);
 
         this.AddToRoot();
@@ -33,7 +30,7 @@ public class GameOverHudUI : ContainerRuntime
         _restartButton.IsFocused = true;
         _restartButton.Click += (s, e) =>
         {
-            Core.ChangeScene(new GameScene(_previousLevel));
+            Core.ChangeScene(new GameScene("level1"));
         };
         _buttonColumn.AddChild(_restartButton);
 
@@ -59,7 +56,6 @@ public class GameOverHudUI : ContainerRuntime
     private ContainerRuntime CreateButtonColumn()
     {
         var column = new ContainerRuntime();
-        column.Anchor(Gum.Wireframe.Anchor.Center);
 
         return column;
     }

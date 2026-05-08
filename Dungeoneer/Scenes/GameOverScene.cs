@@ -11,12 +11,6 @@ namespace Dungeoneer.Scenes;
 public class GameOverScene : Scene
 {
     private GameOverHudUI _gameOverHud;
-    public string _previousLevel;
-
-    public GameOverScene(string previousLevel)
-    {
-        _previousLevel = previousLevel;
-    }
 
     public override void LoadContent()
     {
@@ -29,7 +23,7 @@ public class GameOverScene : Scene
 
         GumService.Default.Root.Children.Clear();
 
-        _gameOverHud = new GameOverHudUI(_previousLevel);
+        _gameOverHud = new GameOverHudUI();
 
         Core.ExitOnEscape = false;
     }
