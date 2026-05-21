@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
-namespace Dungeoneer;
+namespace Dungeoneer.GameObjects.Helpers;
 
 static class Camera
 {

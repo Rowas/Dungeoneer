@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary;
 using MonoGameLibrary.Input;
 
-namespace Dungeoneer;
+namespace Dungeoneer.GameObjects.Helpers;
 
 public static class GameController
 {
