@@ -18,6 +18,11 @@ public class CombatHudUI : ContainerRuntime
 {
     private ContainerRuntime _combatButtonColumn;
     private ContainerRuntime _endOfCombatButtonColumn;
+    private ContainerRuntime _logColumn;
+    private ContainerRuntime _logStack;
+    private ContainerRuntime _controlStack;
+    private ContainerRuntime _playerHpStack;
+    private ContainerRuntime _monsterHpStack;
 
     private AnimatedButton _attackButton;
     private AnimatedButton _skillButton;
@@ -26,6 +31,7 @@ public class CombatHudUI : ContainerRuntime
 
     private TextRuntime _combatEndedText;
     private TextRuntime _skillCooldownLabel;
+
     private TextRuntime _monsterHP;
     private TextRuntime _playerHP;
 
@@ -33,6 +39,9 @@ public class CombatHudUI : ContainerRuntime
     private TextRuntime _combatLog2;
 
     private Panel _combatCommandsPanel;
+    private Panel _combatLogPanel;
+    private Panel _monsterHpPanel;
+    private Panel _playerHpPanel;
 
     private bool _isFirstUpdate = true;
 
@@ -52,49 +61,72 @@ public class CombatHudUI : ContainerRuntime
 
     public CombatHudUI()
     {
-
         Dock(Gum.Wireframe.Dock.Fill);
 
         this.AddToRoot();
 
+        _playerHpStack = new ContainerRuntime();
+        _playerHpStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _playerHpStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _playerHpStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_playerHpStack);
+
+        _monsterHpStack = new ContainerRuntime();
+        _monsterHpStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _monsterHpStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _monsterHpStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_monsterHpStack);
+
+        _monsterHpPanel = CreateHpPanel(GameAssets.GameObjectAtlas);
+        _monsterHpStack.AddChild(_monsterHpPanel);
+
+        _playerHpPanel = CreateHpPanel(GameAssets.GameObjectAtlas);
+        _playerHpStack.AddChild(_playerHpPanel);
+
         _playerHP = CreateHpText(Color.Green);
-        AddChild(_playerHP);
+        _playerHpPanel.AddChild(_playerHP);
 
         _monsterHP = CreateHpText(Color.Red);
-        AddChild(_monsterHP);
+        _monsterHpPanel.AddChild(_monsterHP);
 
-        var controlsStack = new ContainerRuntime();
-        controlsStack.Anchor(Gum.Wireframe.Anchor.Center);
-        controlsStack.WidthUnits = DimensionUnitType.RelativeToChildren;
-        controlsStack.HeightUnits = DimensionUnitType.RelativeToChildren;
-        AddChild(controlsStack);
+        _controlStack = new ContainerRuntime();
+        _controlStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _controlStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _controlStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_controlStack);
 
-        var LogStack = new ContainerRuntime();
-        LogStack.Anchor(Gum.Wireframe.Anchor.Center);
-        LogStack.Y = 30f;
-        LogStack.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        LogStack.WidthUnits = DimensionUnitType.RelativeToChildren;
-        LogStack.HeightUnits = DimensionUnitType.RelativeToChildren;
-        AddChild(LogStack);
+        _logStack = new ContainerRuntime();
+        _logStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _logStack.Y = 30f;
+        _logStack.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _logStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _logStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_logStack);
+
+        _combatLogPanel = CreateLogPanel(GameAssets.GameObjectAtlas);
+        _logStack.AddChild(_combatLogPanel);
+
+        _logColumn = CreateColumn();
+        _combatLogPanel.AddChild(_logColumn);
 
         _combatLog1 = LogLine();
         _combatLog1.Anchor(Gum.Wireframe.Anchor.Center);
-        _combatLog1.Y = -30f;
-        LogStack.AddChild(_combatLog1);
+        _combatLog1.Y = -20f;
+        _logColumn.AddChild(_combatLog1);
 
         _combatLog2 = LogLine();
         _combatLog2.Anchor(Gum.Wireframe.Anchor.Center);
-        _combatLog2.Y = 0f;
+        _combatLog2.Y = 10f;
         _combatLog2.Text = " ";
-        LogStack.AddChild(_combatLog2);
+        _logColumn.AddChild(_combatLog2);
 
-        _combatButtonColumn = CreateButtonColumn();
-        controlsStack.AddChild(_combatButtonColumn);
+        _combatButtonColumn = CreateColumn();
+        _controlStack.AddChild(_combatButtonColumn);
 
         _combatCommandsPanel = CreateCommandPanel(GameAssets.GameObjectAtlas);
         _combatCommandsPanel.AddChild(_combatButtonColumn);
 
-        controlsStack.AddChild(_combatCommandsPanel.Visual);
+        _controlStack.AddChild(_combatCommandsPanel.Visual);
 
         _attackButton = new AnimatedButton(GameAssets.GameObjectAtlas);
         _attackButton.Text = "Attack!";
@@ -137,7 +169,7 @@ public class CombatHudUI : ContainerRuntime
 
         _combatButtonColumn.AddChild(_fleeButton);
 
-        _endOfCombatButtonColumn = CreateButtonColumn();
+        _endOfCombatButtonColumn = CreateColumn();
         _combatCommandsPanel.AddChild(_endOfCombatButtonColumn);
 
         _endCombatButton = new AnimatedButton(GameAssets.GameObjectAtlas);
@@ -189,7 +221,58 @@ public class CombatHudUI : ContainerRuntime
         return panel;
     }
 
-    private ContainerRuntime CreateButtonColumn()
+    private Panel CreateLogPanel(TextureAtlas atlas)
+    {
+        Panel panel = new Panel();
+        panel.Anchor(Gum.Wireframe.Anchor.Center);
+        panel.WidthUnits = DimensionUnitType.Absolute;
+        panel.HeightUnits = DimensionUnitType.Absolute;
+        panel.Width = GumService.Default.CanvasWidth * 0.55f;
+        panel.Height = GumService.Default.CanvasHeight * 0.08f;
+        panel.Y = -15f;
+        panel.IsVisible = true;
+
+        TextureRegion backgroundRegion = atlas.GetRegion("panel-background");
+
+        NineSliceRuntime background = new NineSliceRuntime();
+        background.Dock(Gum.Wireframe.Dock.Fill);
+        background.Texture = backgroundRegion.Texture;
+        background.TextureAddress = TextureAddress.Custom;
+        background.TextureHeight = backgroundRegion.Height;
+        background.TextureWidth = backgroundRegion.Width;
+        background.TextureTop = backgroundRegion.SourceRectangle.Top;
+        background.TextureLeft = backgroundRegion.SourceRectangle.Left;
+        panel.AddChild(background);
+
+        return panel;
+    }
+
+    private Panel CreateHpPanel(TextureAtlas atlas)
+    {
+        Panel panel = new Panel();
+        panel.Anchor(Gum.Wireframe.Anchor.Center);
+        panel.WidthUnits = DimensionUnitType.Absolute;
+        panel.HeightUnits = DimensionUnitType.Absolute;
+        panel.Width = GumService.Default.CanvasWidth * 0.18f;
+        panel.Height = GumService.Default.CanvasHeight * 0.08f;
+        panel.IsVisible = true;
+
+        TextureRegion backgroundRegion = atlas.GetRegion("panel-background");
+
+        NineSliceRuntime background = new NineSliceRuntime();
+        background.Dock(Gum.Wireframe.Dock.Fill);
+        background.Texture = backgroundRegion.Texture;
+        background.TextureAddress = TextureAddress.Custom;
+        background.TextureHeight = backgroundRegion.Height;
+        background.TextureWidth = backgroundRegion.Width;
+        background.TextureTop = backgroundRegion.SourceRectangle.Top;
+        background.TextureLeft = backgroundRegion.SourceRectangle.Left;
+        panel.AddChild(background);
+
+        return panel;
+    }
+
+    private ContainerRuntime CreateColumn()
     {
         var column = new ContainerRuntime();
         column.Anchor(Gum.Wireframe.Anchor.Center);
@@ -222,6 +305,7 @@ public class CombatHudUI : ContainerRuntime
         text.HorizontalAlignment = HorizontalAlignment.Center;
         text.VerticalAlignment = VerticalAlignment.Center;
         text.Text = string.Format(s_hpFormat, 0, 0);
+        text.Anchor(Gum.Wireframe.Anchor.Center);
         return text;
     }
 
@@ -257,8 +341,8 @@ public class CombatHudUI : ContainerRuntime
             encounter.Player.HealthCurrent, encounter.Player.HealthPool);
         _monsterHP.Text = string.Format(s_hpFormat,
             encounter.Monster.HealthCurrent, encounter.Monster.HealthPool);
-        LayoutHpAboveActor(viewport, _playerHP, encounter.Player);
-        LayoutHpAboveActor(viewport, _monsterHP, encounter.Monster);
+        LayoutPlayerHpAboveActor(viewport, _playerHpStack, encounter.Player);
+        LayoutPlayerHpAboveActor(viewport, _monsterHpStack, encounter.Monster);
 
         UpdateSkillCooldown(encounter.Player.SkillCD);
     }
@@ -307,6 +391,22 @@ public class CombatHudUI : ContainerRuntime
         label.YOrigin = VerticalAlignment.Bottom;
         label.X = centerX;
         label.Y = topLeft.Y - gapPx;
+    }
+
+    private void LayoutPlayerHpAboveActor(Viewport vp, ContainerRuntime stack, ActorBase actor)
+    {
+        Vector2 topLeft = actor.SpriteDrawPosition;
+        Vector2 size = actor.SpriteDrawExtents;
+        if (size.X <= 0f || size.Y <= 0f)
+            size = s_fallbackSpriteSize;
+        float centerX = actor.SpriteDrawPosition.X + (64f * actor.CombatScale) * 0.5f;
+        float gapPx = vp.Height * HpGapViewportFraction;
+        stack.Anchor(Gum.Wireframe.Anchor.TopLeft);
+        stack.XOrigin = HorizontalAlignment.Center;
+        stack.YOrigin = VerticalAlignment.Bottom;
+        stack.X = centerX;
+        stack.Y = topLeft.Y - gapPx;
+        stack.Y = stack.Y * 1.2f;
     }
 
     public void PrintCombatLog(CombatActionResult combatResult, CombatEncounter encounter)
