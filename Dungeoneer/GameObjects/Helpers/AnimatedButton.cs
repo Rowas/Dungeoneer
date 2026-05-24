@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using MonoGameGum.GueDeriving;
 using MonoGameLibrary.Graphics;
 
-namespace Dungeoneer.UI;
+namespace Dungeoneer.GameObjects.Helpers;
 
 /// <summary>
 /// A custom button implementation that inherits from Gum's Button class to provide
