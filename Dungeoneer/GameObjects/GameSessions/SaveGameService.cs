@@ -60,7 +60,7 @@ public sealed class Vector2JsonConverter : JsonConverter<Vector2>
                 return new Vector2(x, y);
             if (reader.TokenType != JsonTokenType.PropertyName)
                 continue;
-            string? name = reader.GetString();
+            string name = reader.GetString();
             reader.Read();
             if (string.Equals(name, "X", StringComparison.OrdinalIgnoreCase))
                 x = (float)reader.GetDouble();

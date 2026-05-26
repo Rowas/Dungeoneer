@@ -13,10 +13,8 @@ namespace Dungeoneer.UI;
 public class CreditsHudUI : ContainerRuntime
 {
     private ContainerRuntime _buttonColumn;
-    private ContainerRuntime _creditsColumn;
 
     private AnimatedButton _backButton;
-    private AnimatedButton _quitGameButton;
 
     private int _lineNumber = 1;
     private int _lineSpacing = 40;

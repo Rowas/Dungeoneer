@@ -23,6 +23,7 @@ public class CombatHudUI : ContainerRuntime
     private ContainerRuntime _controlStack;
     private ContainerRuntime _playerHpStack;
     private ContainerRuntime _monsterHpStack;
+    private ContainerRuntime _commandInfoStack;
 
     private AnimatedButton _attackButton;
     private AnimatedButton _skillButton;
@@ -31,6 +32,7 @@ public class CombatHudUI : ContainerRuntime
 
     private TextRuntime _combatEndedText;
     private TextRuntime _skillCooldownLabel;
+    private TextRuntime _commandInfoText;
 
     private TextRuntime _monsterHP;
     private TextRuntime _playerHP;
@@ -38,10 +40,14 @@ public class CombatHudUI : ContainerRuntime
     private TextRuntime _combatLog1;
     private TextRuntime _combatLog2;
 
+    private Panel _commandInfoPanel;
     private Panel _combatCommandsPanel;
     private Panel _combatLogPanel;
     private Panel _monsterHpPanel;
     private Panel _playerHpPanel;
+
+    private int _minDmg;
+    private int _maxDmg;
 
     private bool _isFirstUpdate = true;
 
@@ -65,135 +71,15 @@ public class CombatHudUI : ContainerRuntime
 
         this.AddToRoot();
 
-        _playerHpStack = new ContainerRuntime();
-        _playerHpStack.Anchor(Gum.Wireframe.Anchor.Center);
-        _playerHpStack.WidthUnits = DimensionUnitType.RelativeToChildren;
-        _playerHpStack.HeightUnits = DimensionUnitType.RelativeToChildren;
-        AddChild(_playerHpStack);
+        InitializeHpDisplay();
 
-        _monsterHpStack = new ContainerRuntime();
-        _monsterHpStack.Anchor(Gum.Wireframe.Anchor.Center);
-        _monsterHpStack.WidthUnits = DimensionUnitType.RelativeToChildren;
-        _monsterHpStack.HeightUnits = DimensionUnitType.RelativeToChildren;
-        AddChild(_monsterHpStack);
+        InitializeCombatLog();
 
-        _monsterHpPanel = CreateHpPanel(GameAssets.GameObjectAtlas);
-        _monsterHpStack.AddChild(_monsterHpPanel);
+        InitializeCombatCommands();
 
-        _playerHpPanel = CreateHpPanel(GameAssets.GameObjectAtlas);
-        _playerHpStack.AddChild(_playerHpPanel);
+        InitializeCombatCommandsInfo();
 
-        _playerHP = CreateHpText(Color.Green);
-        _playerHpPanel.AddChild(_playerHP);
-
-        _monsterHP = CreateHpText(Color.Red);
-        _monsterHpPanel.AddChild(_monsterHP);
-
-        _controlStack = new ContainerRuntime();
-        _controlStack.Anchor(Gum.Wireframe.Anchor.Center);
-        _controlStack.WidthUnits = DimensionUnitType.RelativeToChildren;
-        _controlStack.HeightUnits = DimensionUnitType.RelativeToChildren;
-        AddChild(_controlStack);
-
-        _logStack = new ContainerRuntime();
-        _logStack.Anchor(Gum.Wireframe.Anchor.Center);
-        _logStack.Y = 30f;
-        _logStack.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _logStack.WidthUnits = DimensionUnitType.RelativeToChildren;
-        _logStack.HeightUnits = DimensionUnitType.RelativeToChildren;
-        AddChild(_logStack);
-
-        _combatLogPanel = CreateLogPanel(GameAssets.GameObjectAtlas);
-        _logStack.AddChild(_combatLogPanel);
-
-        _logColumn = CreateColumn();
-        _combatLogPanel.AddChild(_logColumn);
-
-        _combatLog1 = LogLine();
-        _combatLog1.Anchor(Gum.Wireframe.Anchor.Center);
-        _combatLog1.Y = -20f;
-        _logColumn.AddChild(_combatLog1);
-
-        _combatLog2 = LogLine();
-        _combatLog2.Anchor(Gum.Wireframe.Anchor.Center);
-        _combatLog2.Y = 10f;
-        _combatLog2.Text = " ";
-        _logColumn.AddChild(_combatLog2);
-
-        _combatButtonColumn = CreateColumn();
-        _controlStack.AddChild(_combatButtonColumn);
-
-        _combatCommandsPanel = CreateCommandPanel(GameAssets.GameObjectAtlas);
-        _combatCommandsPanel.AddChild(_combatButtonColumn);
-
-        _controlStack.AddChild(_combatCommandsPanel.Visual);
-
-        _attackButton = new AnimatedButton(GameAssets.GameObjectAtlas);
-        _attackButton.Text = "Attack!";
-        _attackButton.Click += HandleAttack;
-        _attackButton.Anchor(Gum.Wireframe.Anchor.Center);
-        _attackButton.IsFocused = true;
-        _attackButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _attackButton.Y = 25;
-
-        _combatButtonColumn.AddChild(_attackButton);
-
-        _skillButton = new AnimatedButton(GameAssets.GameObjectAtlas);
-        _skillButton.Text = "Bite!";
-        _skillButton.Click += HandleSkill;
-        _skillButton.Anchor(Gum.Wireframe.Anchor.Center);
-        _skillButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _skillButton.Y = 50;
-
-        _combatButtonColumn.AddChild(_skillButton);
-
-        _skillCooldownLabel = LogLine();
-        _skillCooldownLabel.Text = " ";
-        _skillCooldownLabel.Visible = false;
-
-        _skillCooldownLabel.Anchor(Gum.Wireframe.Anchor.Center);
-        _skillCooldownLabel.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _skillCooldownLabel.Y = _skillButton.Y;
-        _skillCooldownLabel.XUnits = _skillButton.XUnits;
-        _skillCooldownLabel.X = _skillButton.X;
-        _skillCooldownLabel.HorizontalAlignment = HorizontalAlignment.Center;
-
-        _combatButtonColumn.AddChild(_skillCooldownLabel);
-
-        _fleeButton = new AnimatedButton(GameAssets.GameObjectAtlas);
-        _fleeButton.Text = "Flee!";
-        _fleeButton.Click += HandleFlee;
-        _fleeButton.Anchor(Gum.Wireframe.Anchor.Center);
-        _fleeButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _fleeButton.Y = 75;
-
-        _combatButtonColumn.AddChild(_fleeButton);
-
-        _endOfCombatButtonColumn = CreateColumn();
-        _combatCommandsPanel.AddChild(_endOfCombatButtonColumn);
-
-        _endCombatButton = new AnimatedButton(GameAssets.GameObjectAtlas);
-        _endCombatButton.Text = "End Combat";
-        _endCombatButton.Click += HandleEndCombat;
-        _endCombatButton.Anchor(Gum.Wireframe.Anchor.Center);
-        _endCombatButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _endCombatButton.Y = 75;
-
-        _endOfCombatButtonColumn.AddChild(_endCombatButton);
-
-        _combatEndedText = LogLine();
-        _combatEndedText.Anchor(Gum.Wireframe.Anchor.Center);
-        _combatEndedText.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _combatEndedText.Text = "Combat is Over!";
-        _combatEndedText.Y = _skillButton.Y;
-        _combatEndedText.XUnits = _skillButton.XUnits;
-        _combatEndedText.X = _skillButton.X;
-        _combatEndedText.HorizontalAlignment = HorizontalAlignment.Center;
-
-        _endOfCombatButtonColumn.AddChild(_combatEndedText);
-
-        _endOfCombatButtonColumn.Visible = false;
-        _endOfCombatButtonColumn.IsEnabled = false;
+        InitializeEndScreen();
     }
 
     private Panel CreateCommandPanel(TextureAtlas atlas)
@@ -337,12 +223,32 @@ public class CombatHudUI : ContainerRuntime
             UpdateSkillCooldown(encounter.Player.SkillCD);
         }
 
+        if (_attackButton.IsFocused == true)
+        {
+            _commandInfoText.Text = GetCommandInfo(_attackButton.Text);
+        }
+        else if (_skillButton.IsFocused == true)
+        {
+            _commandInfoText.Text = GetCommandInfo(_skillButton.Text);
+        }
+        else if (_fleeButton.IsFocused == true)
+        {
+            _commandInfoText.Text = GetCommandInfo(_fleeButton.Text);
+        }
+        else
+        {
+            _commandInfoText.Text = " ";
+        }
+
+        _minDmg = encounter.Player.MinDamage;
+        _maxDmg = encounter.Player.MaxDamage;
+
         _playerHP.Text = string.Format(s_hpFormat,
             encounter.Player.HealthCurrent, encounter.Player.HealthPool);
         _monsterHP.Text = string.Format(s_hpFormat,
             encounter.Monster.HealthCurrent, encounter.Monster.HealthPool);
-        LayoutPlayerHpAboveActor(viewport, _playerHpStack, encounter.Player);
-        LayoutPlayerHpAboveActor(viewport, _monsterHpStack, encounter.Monster);
+        LayoutHpAboveActor(viewport, _playerHpStack, encounter.Player);
+        LayoutHpAboveActor(viewport, _monsterHpStack, encounter.Monster);
 
         UpdateSkillCooldown(encounter.Player.SkillCD);
     }
@@ -378,22 +284,7 @@ public class CombatHudUI : ContainerRuntime
         _lastSkillCd = cd;
     }
 
-    private void LayoutHpAboveActor(Viewport vp, TextRuntime label, ActorBase actor)
-    {
-        Vector2 topLeft = actor.SpriteDrawPosition;
-        Vector2 size = actor.SpriteDrawExtents;
-        if (size.X <= 0f || size.Y <= 0f)
-            size = s_fallbackSpriteSize;
-        float centerX = actor.SpriteDrawPosition.X + (64f * actor.CombatScale) * 0.5f;
-        float gapPx = vp.Height * HpGapViewportFraction;
-        label.Anchor(Gum.Wireframe.Anchor.TopLeft);
-        label.XOrigin = HorizontalAlignment.Center;
-        label.YOrigin = VerticalAlignment.Bottom;
-        label.X = centerX;
-        label.Y = topLeft.Y - gapPx;
-    }
-
-    private void LayoutPlayerHpAboveActor(Viewport vp, ContainerRuntime stack, ActorBase actor)
+    private void LayoutHpAboveActor(Viewport vp, ContainerRuntime stack, ActorBase actor)
     {
         Vector2 topLeft = actor.SpriteDrawPosition;
         Vector2 size = actor.SpriteDrawExtents;
@@ -442,6 +333,185 @@ public class CombatHudUI : ContainerRuntime
 
             _endCombatButton.IsFocused = true;
         }
+    }
+
+    private void InitializeCombatLog()
+    {
+        _logStack = new ContainerRuntime();
+        _logStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _logStack.Y = 30f;
+        _logStack.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _logStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _logStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_logStack);
+
+        _combatLogPanel = CreateLogPanel(GameAssets.GameObjectAtlas);
+        _logStack.AddChild(_combatLogPanel);
+
+        _logColumn = CreateColumn();
+        _combatLogPanel.AddChild(_logColumn);
+
+        _combatLog1 = LogLine();
+        _combatLog1.Anchor(Gum.Wireframe.Anchor.Center);
+        _combatLog1.Y = -20f;
+        _logColumn.AddChild(_combatLog1);
+
+        _combatLog2 = LogLine();
+        _combatLog2.Anchor(Gum.Wireframe.Anchor.Center);
+        _combatLog2.Y = 10f;
+        _combatLog2.Text = " ";
+        _logColumn.AddChild(_combatLog2);
+    }
+
+    private void InitializeHpDisplay()
+    {
+        _playerHpStack = new ContainerRuntime();
+        _playerHpStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _playerHpStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _playerHpStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_playerHpStack);
+
+        _monsterHpStack = new ContainerRuntime();
+        _monsterHpStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _monsterHpStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _monsterHpStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_monsterHpStack);
+
+        _monsterHpPanel = CreateHpPanel(GameAssets.GameObjectAtlas);
+        _monsterHpStack.AddChild(_monsterHpPanel);
+
+        _playerHpPanel = CreateHpPanel(GameAssets.GameObjectAtlas);
+        _playerHpStack.AddChild(_playerHpPanel);
+
+        _playerHP = CreateHpText(Color.Green);
+        _playerHpPanel.AddChild(_playerHP);
+
+        _monsterHP = CreateHpText(Color.Red);
+        _monsterHpPanel.AddChild(_monsterHP);
+    }
+
+    private void InitializeCombatCommands()
+    {
+        _controlStack = new ContainerRuntime();
+        _controlStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _controlStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _controlStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_controlStack);
+
+        _combatButtonColumn = CreateColumn();
+        _controlStack.AddChild(_combatButtonColumn);
+
+        _combatCommandsPanel = CreateCommandPanel(GameAssets.GameObjectAtlas);
+        _combatCommandsPanel.AddChild(_combatButtonColumn);
+
+        _controlStack.AddChild(_combatCommandsPanel.Visual);
+
+        _attackButton = new AnimatedButton(GameAssets.GameObjectAtlas);
+        _attackButton.Text = "Attack!";
+        _attackButton.Click += HandleAttack;
+        _attackButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _attackButton.IsFocused = true;
+        _attackButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _attackButton.Y = 25;
+
+        _combatButtonColumn.AddChild(_attackButton);
+
+        _skillButton = new AnimatedButton(GameAssets.GameObjectAtlas);
+        _skillButton.Text = "Bite!";
+        _skillButton.Click += HandleSkill;
+        _skillButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _skillButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _skillButton.Y = 50;
+
+        _combatButtonColumn.AddChild(_skillButton);
+
+        _skillCooldownLabel = LogLine();
+        _skillCooldownLabel.Text = " ";
+        _skillCooldownLabel.Visible = false;
+
+        _skillCooldownLabel.Anchor(Gum.Wireframe.Anchor.Center);
+        _skillCooldownLabel.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _skillCooldownLabel.Y = _skillButton.Y;
+        _skillCooldownLabel.XUnits = _skillButton.XUnits;
+        _skillCooldownLabel.X = _skillButton.X;
+        _skillCooldownLabel.HorizontalAlignment = HorizontalAlignment.Center;
+
+        _combatButtonColumn.AddChild(_skillCooldownLabel);
+
+        _fleeButton = new AnimatedButton(GameAssets.GameObjectAtlas);
+        _fleeButton.Text = "Flee!";
+        _fleeButton.Click += HandleFlee;
+        _fleeButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _fleeButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _fleeButton.Y = 75;
+
+        _combatButtonColumn.AddChild(_fleeButton);
+    }
+
+    private void InitializeCombatCommandsInfo()
+    {
+        _commandInfoStack = new ContainerRuntime();
+        _commandInfoStack.Anchor(Gum.Wireframe.Anchor.Center);
+        _commandInfoStack.Y = 80f;
+        _commandInfoStack.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _commandInfoStack.WidthUnits = DimensionUnitType.RelativeToChildren;
+        _commandInfoStack.HeightUnits = DimensionUnitType.RelativeToChildren;
+        AddChild(_commandInfoStack);
+
+        _commandInfoPanel = CreateCommandPanel(GameAssets.GameObjectAtlas);
+        _commandInfoPanel.IsVisible = true;
+        _commandInfoPanel.Width = GumService.Default.CanvasWidth * 0.50f;
+        _commandInfoPanel.Height = GumService.Default.CanvasHeight * 0.10f;
+        _commandInfoStack.AddChild(_commandInfoPanel);
+
+        _commandInfoText = LogLine();
+        _commandInfoText.Text = " ";
+        _commandInfoText.WidthUnits = DimensionUnitType.RelativeToParent;
+        _commandInfoText.MaxWidth = _commandInfoPanel.Width * 0.9f;
+        _commandInfoText.Anchor(Gum.Wireframe.Anchor.Center);
+        _commandInfoPanel.AddChild(_commandInfoText);
+    }
+
+    private void InitializeEndScreen()
+    {
+        _endOfCombatButtonColumn = CreateColumn();
+        _combatCommandsPanel.AddChild(_endOfCombatButtonColumn);
+
+        _endCombatButton = new AnimatedButton(GameAssets.GameObjectAtlas);
+        _endCombatButton.Text = "End Combat";
+        _endCombatButton.Click += HandleEndCombat;
+        _endCombatButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _endCombatButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _endCombatButton.Y = 75;
+
+        _endOfCombatButtonColumn.AddChild(_endCombatButton);
+
+        _combatEndedText = LogLine();
+        _combatEndedText.Anchor(Gum.Wireframe.Anchor.Center);
+        _combatEndedText.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _combatEndedText.Text = "Combat is Over!";
+        _combatEndedText.Y = _skillButton.Y;
+        _combatEndedText.XUnits = _skillButton.XUnits;
+        _combatEndedText.X = _skillButton.X;
+        _combatEndedText.HorizontalAlignment = HorizontalAlignment.Center;
+
+        _endOfCombatButtonColumn.AddChild(_combatEndedText);
+
+        _endOfCombatButtonColumn.Visible = false;
+        _endOfCombatButtonColumn.IsEnabled = false;
+    }
+
+    private string GetCommandInfo(string command)
+    {
+        return command switch
+        {
+            "Attack!" => "A basic attack with no cooldown. Can be used every turn. " +
+            $"Deals {_minDmg} to {_maxDmg} damage.",
+            "Bite!" => "A powerful attack that deals 200% attack damage. 5% chance to execute. " +
+            "Increased to 20% when target has less than 20% HP. Has a 3 turn cooldown.",
+            "Flee!" => "Escape from the current encounter.",
+            _ => " "
+        };
     }
 
     private string GetActorName(CombatEncounter encounter, int entityId)

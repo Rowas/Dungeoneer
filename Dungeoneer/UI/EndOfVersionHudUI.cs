@@ -12,7 +12,6 @@ internal class EndOfVersionHudUI : ContainerRuntime
 
     private AnimatedButton _restartButton;
     private AnimatedButton _mainMenuButton;
-    private AnimatedButton _creditsButton;
     private AnimatedButton _exitButton;
 
     public event EventHandler RestartGameButtonClick;

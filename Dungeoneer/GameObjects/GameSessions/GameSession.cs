@@ -167,7 +167,7 @@ public static class GameSessionExtensions
                 }
         return bytes;
     }
-    public static bool[,] UnpackExplored(byte[]? bytes, int columns, int rows)
+    public static bool[,] UnpackExplored(byte[] bytes, int columns, int rows)
     {
         var explored = new bool[columns, rows];
         if (bytes == null || bytes.Length == 0) return explored;
