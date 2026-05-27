@@ -21,7 +21,8 @@ public class PlayerCharacter : ActorBase
     public int XPToNextLevel { get; set; } = 15;
     public List<(string, int)> Skills { get; set; } = new List<(string, int)>
     {
-        ("Bite", 0)
+        ("Defend!", 0),
+        ("Bite!", 1)
     };
 
     private readonly Queue<Vector2> _inputBuffer = new(0);

@@ -1,5 +1,6 @@
 ﻿using Dungeoneer.GameObjects.Bases;
 using Dungeoneer.GameObjects.Helpers;
+using Dungeoneer.GameObjects.Player;
 using Gum.DataTypes;
 using Gum.Forms.Controls;
 using Gum.Managers;
@@ -10,6 +11,7 @@ using MonoGameGum.GueDeriving;
 using MonoGameLibrary.Graphics;
 using RenderingLibrary.Graphics;
 using System;
+using System.Collections.Generic;
 using static Dungeoneer.GameObjects.Bases.ActorBase;
 
 namespace Dungeoneer.UI;
@@ -24,11 +26,15 @@ public class CombatHudUI : ContainerRuntime
     private ContainerRuntime _playerHpStack;
     private ContainerRuntime _monsterHpStack;
     private ContainerRuntime _commandInfoStack;
+    private ContainerRuntime _skillsColumn;
 
     private AnimatedButton _attackButton;
     private AnimatedButton _skillButton;
     private AnimatedButton _fleeButton;
     private AnimatedButton _endCombatButton;
+    private AnimatedButton _backButton;
+
+    private List<AnimatedButton> _skillButtonsList = new();
 
     private TextRuntime _combatEndedText;
     private TextRuntime _skillCooldownLabel;
@@ -65,7 +71,7 @@ public class CombatHudUI : ContainerRuntime
     public bool EndCombat { get; set; } = false;
     private int _lastSkillCd { get; set; } = -1;
 
-    public CombatHudUI()
+    public CombatHudUI(PlayerCharacter player)
     {
         Dock(Gum.Wireframe.Dock.Fill);
 
@@ -76,6 +82,8 @@ public class CombatHudUI : ContainerRuntime
         InitializeCombatLog();
 
         InitializeCombatCommands();
+
+        InitializeCombatSkills(player);
 
         InitializeCombatCommandsInfo();
 
@@ -235,6 +243,21 @@ public class CombatHudUI : ContainerRuntime
         {
             _commandInfoText.Text = GetCommandInfo(_fleeButton.Text);
         }
+        else if (_skillsColumn.Visible == true)
+        {
+            foreach (var skill in _skillButtonsList)
+            {
+                if (skill.IsFocused == true)
+                {
+                    _commandInfoText.Text = GetCommandInfo(skill.Text);
+                    break;
+                }
+            }
+        }
+        else if (_backButton.IsFocused == true)
+        {
+            _commandInfoText.Text = GetCommandInfo(_backButton.Text);
+        }
         else
         {
             _commandInfoText.Text = " ";
@@ -262,9 +285,9 @@ public class CombatHudUI : ContainerRuntime
             if (_skillButton.IsFocused)
                 _attackButton.IsFocused = true;
 
-            _skillButton.IsFocused = false;
-            _skillButton.IsEnabled = false;
-            _skillButton.IsVisible = false;
+            //_useSkillButton.IsFocused = false;
+            //_useSkillButton.IsEnabled = false;
+            //_useSkillButton.IsVisible = false;
 
             _skillCooldownLabel.Visible = true;
 
@@ -417,8 +440,8 @@ public class CombatHudUI : ContainerRuntime
         _combatButtonColumn.AddChild(_attackButton);
 
         _skillButton = new AnimatedButton(GameAssets.GameObjectAtlas);
-        _skillButton.Text = "Bite!";
-        _skillButton.Click += HandleSkill;
+        _skillButton.Text = "Use Skills!";
+        _skillButton.Click += HandleSkillWindow;
         _skillButton.Anchor(Gum.Wireframe.Anchor.Center);
         _skillButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
         _skillButton.Y = 50;
@@ -446,6 +469,38 @@ public class CombatHudUI : ContainerRuntime
         _fleeButton.Y = 75;
 
         _combatButtonColumn.AddChild(_fleeButton);
+    }
+
+    private void InitializeCombatSkills(PlayerCharacter player)
+    {
+        _skillsColumn = CreateColumn();
+        _skillsColumn.Visible = false;
+        _skillsColumn.IsEnabled = false;
+        _controlStack.AddChild(_skillsColumn);
+
+        foreach (var skill in player.Skills)
+        {
+            var btn = new AnimatedButton(GameAssets.GameObjectAtlas);
+            btn.Name = skill.Item2.ToString();
+            btn.Text = skill.Item1;
+            btn.Click += HandleSkillUse;
+            btn.Anchor(Gum.Wireframe.Anchor.Center);
+            btn.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+            btn.Y = 0 + (player.Skills.IndexOf(skill) * 25);
+
+            _skillsColumn.AddChild(btn);
+
+            _skillButtonsList.Add(btn);
+        }
+
+        _backButton = new AnimatedButton(GameAssets.GameObjectAtlas);
+        _backButton.Text = "Back";
+        _backButton.Click += HandleSkillWindow;
+        _backButton.Anchor(Gum.Wireframe.Anchor.Center);
+        _backButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
+        _backButton.Y = 0 + (player.Skills.Count * 25);
+
+        _skillsColumn.AddChild(_backButton);
     }
 
     private void InitializeCombatCommandsInfo()
@@ -506,10 +561,21 @@ public class CombatHudUI : ContainerRuntime
         return command switch
         {
             "Attack!" => "A basic attack with no cooldown. Can be used every turn. " +
-            $"Deals {_minDmg} to {_maxDmg} damage.",
+            $"Deals {_minDmg} to {_maxDmg} damage. ",
+
+            "Flee!" => "Escape from the current encounter. ",
+
+            "End Combat" => "End the combat encounter and return to the dungeon. ",
+
+            "Use Skills!" => "Use one of your skills. Each skill has its own effects and cooldowns. ",
+
+            "Defend!" => "Take a defensive stance, doubling your ARM for one turn. Can be used every turn. ",
+
             "Bite!" => "A powerful attack that deals 200% attack damage. 5% chance to execute. " +
-            "Increased to 20% when target has less than 20% HP. Has a 3 turn cooldown.",
-            "Flee!" => "Escape from the current encounter.",
+            "Increased to 20% when target has less than 20% HP. Has a 3 turn cooldown. ",
+
+            "Back" => "Return to the default command window. ",
+
             _ => " "
         };
     }
@@ -539,7 +605,25 @@ public class CombatHudUI : ContainerRuntime
         Defend = true;
     }
 
-    private void HandleSkill(object sender, EventArgs e)
+    private void HandleSkillWindow(object sender, EventArgs e)
+    {
+        _skillsColumn.IsEnabled = !_skillsColumn.IsEnabled;
+        _skillsColumn.Visible = !_skillsColumn.Visible;
+        _combatButtonColumn.Visible = !_combatButtonColumn.Visible;
+        _combatButtonColumn.IsEnabled = !_combatButtonColumn.IsEnabled;
+        if (_backButton.IsFocused == true)
+        {
+            _backButton.IsFocused = false;
+            _skillButton.IsFocused = true;
+        }
+        else
+        {
+            _skillButton.IsFocused = false;
+            _skillButtonsList[0].IsFocused = true;
+        }
+    }
+
+    private void HandleSkillUse(object sender, EventArgs e)
     {
         if (IsAttackMade)
             return;

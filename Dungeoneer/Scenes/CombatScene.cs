@@ -42,7 +42,7 @@ public class CombatScene : Scene
 
         GumService.Default.Root.Children.Clear();
 
-        _hudUI = new CombatHudUI();
+        _hudUI = new CombatHudUI(_encounter.Player);
 
         Core.ExitOnEscape = false;
     }
