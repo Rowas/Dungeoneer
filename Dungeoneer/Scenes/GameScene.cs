@@ -96,7 +96,7 @@ public class GameScene : Scene
                 nextLevel.Player = _playerSession;
                 nextLevel.Player.Position = _dungeonMap.PlayerStart;
                 _playerCharacter = LoadEntities.CreatePlayer(nextLevel, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos);
-                _playerCharacter.SkillCD = _playerSession.skillCD;
+                _playerCharacter.SkillCooldowns = _playerSession.SkillCooldowns;
             }
 
             _actors = LoadEntities.ParseActors(_dungeonMap, GameAssets.GameObjectAtlas, CanActorMoveTo, GetBlockingActorAtWorldPos, _level);

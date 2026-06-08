@@ -35,7 +35,7 @@ public sealed class PlayerSessionState
     public int MinDamage { get; set; }
     public int MaxDamage { get; set; }
     public int Armor { get; set; }
-    public int skillCD { get; set; }
+    public Dictionary<int, int> SkillCooldowns { get; set; }
 }
 
 public sealed class MonsterSessionState
@@ -123,7 +123,7 @@ public static class GameSessionExtensions
                 MinDamage = _playerCharacter.MinDamage,
                 MaxDamage = _playerCharacter.MaxDamage,
                 Armor = _playerCharacter.Armor,
-                skillCD = _playerCharacter.SkillCD,
+                SkillCooldowns = _playerCharacter.SkillCooldowns,
             },
             Monsters = new List<MonsterSessionState>(),
             Props = new List<PropSessionState>(),
@@ -167,7 +167,7 @@ public static class GameSessionExtensions
                 }
         return bytes;
     }
-    public static bool[,] UnpackExplored(byte[]? bytes, int columns, int rows)
+    public static bool[,] UnpackExplored(byte[] bytes, int columns, int rows)
     {
         var explored = new bool[columns, rows];
         if (bytes == null || bytes.Length == 0) return explored;

@@ -35,8 +35,11 @@ public abstract class ActorBase
     protected TimeSpan MoveAnimDuration { get; set; }
     protected TimeSpan AttackAnimRemaining { get; set; }
     protected TimeSpan AttackAnimDuration { get; set; }
+    protected TimeSpan DefendAnimRemaining { get; set; }
     public bool IsMoving => MoveAnimRemaining > TimeSpan.Zero;
     public bool IsAttacking => AttackAnimRemaining > TimeSpan.Zero;
+    public bool IsActionLocked =>
+        AttackAnimRemaining > TimeSpan.Zero || DefendAnimRemaining > TimeSpan.Zero;
     public Vector2 TargetPosition => To;
 
     private readonly Func<ActorBase, Vector2, bool> _canMoveToWorldPos;
@@ -206,6 +209,16 @@ public abstract class ActorBase
         if (AttackAnimRemaining > TimeSpan.Zero && InCombat)
         {
             AttackAnimRemaining -= gameTime.ElapsedGameTime;
+            if (AttackAnimRemaining < TimeSpan.Zero)
+                AttackAnimRemaining = TimeSpan.Zero;
+            return;
+        }
+
+        if (DefendAnimRemaining > TimeSpan.Zero && InCombat)
+        {
+            DefendAnimRemaining -= gameTime.ElapsedGameTime;
+            if (DefendAnimRemaining < TimeSpan.Zero)
+                DefendAnimRemaining = TimeSpan.Zero;
             return;
         }
 
@@ -335,15 +348,24 @@ public abstract class ActorBase
         var defenderAction = isTargetDefending ? CombatActionType.Defend : CombatActionType.None;
         var outcome = (isTargetDefending && damage <= 0) ? CombatOutcomeKind.Blocked : CombatOutcomeKind.Hit;
 
-        return BuildCombatResult(defenderAction, target.EntityId, outcome, damage);
+        return BuildCombatResult(defenderAction, target.EntityId, outcome, damage, skill);
+    }
+
+    public void BeginDefendAction()
+    {
+        DefendAnimRemaining = GetCombatActionLockDuration();
     }
 
     private void BeginAttackAnimation()
     {
         AttackMade = true;
+        AttackAnimRemaining = GetCombatActionLockDuration();
+    }
 
+    private TimeSpan GetCombatActionLockDuration()
+    {
         var anim = AttackSprite?.Animation;
-        AttackAnimRemaining = (anim != null)
+        return anim != null
             ? TimeSpan.FromTicks(anim.Delay.Ticks * anim.Frames.Count)
             : TimeSpan.FromMilliseconds(300);
     }
@@ -362,16 +384,16 @@ public abstract class ActorBase
         CombatActionType defenderAction,
         int targetEntityId,
         CombatOutcomeKind outcome,
-        int damageDealt)
+        int damageDealt,
+        bool skill = false)
     {
         return new CombatActionResult(
-            CombatActionType.Attack,
+            skill ? CombatActionType.Skill : CombatActionType.Attack,
             EntityId,
             defenderAction,
             targetEntityId,
             outcome,
-            damageDealt
-        );
+            damageDealt);
     }
 
     public enum CombatActionType { Attack, Defend, Skill, None }

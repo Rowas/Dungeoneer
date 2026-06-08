@@ -9,6 +9,8 @@ using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using static Dungeoneer.GameObjects.Bases.ActorBase;
 
 namespace Dungeoneer.Scenes;
@@ -42,7 +44,7 @@ public class CombatScene : Scene
 
         GumService.Default.Root.Children.Clear();
 
-        _hudUI = new CombatHudUI();
+        _hudUI = new CombatHudUI(_encounter.Player);
 
         Core.ExitOnEscape = false;
     }
@@ -91,45 +93,29 @@ public class CombatScene : Scene
                 MonsterDefeated = false
             };
 
-            if (_encounter.Player.SkillCD > 0)
-                _encounter.Session.Player.skillCD = _encounter.Player.SkillCD;
+            _encounter.Session.Player.SkillCooldowns = _encounter.Player.SkillCooldowns ?? new();
 
             _encounter.Session.ApplyCombatOutcome(outcome);
 
             Core.ChangeScene(new GameScene(_encounter.Session.Level, _encounter.Session));
         }
 
-        if (_hudUI.Skill == true)
+        if (_hudUI.Skill && _hudUI.SelectedSkillId is int skillId)
         {
-            if (_encounter.Player.SkillCD > 0)
-                return;
-
-            actionRoll = Rand.NextDouble();
-
-            if (actionRoll > 0.5)
+            if (skillId == 1 && IsSkillOnCooldown(1))
             {
-                CombatResult = _encounter.Player.Attack(_encounter.Monster, true, true);
-
-                GetCombatOutcome(_encounter.Monster, CombatResult);
-
-                _hudUI.PrintCombatLog(CombatResult, _encounter);
+                // gör inget — fall through till Sync + reset
             }
-            else
+            else if (skillId == 0)
             {
-                CombatResult = _encounter.Player.Attack(_encounter.Monster, false, true);
-                GetCombatOutcome(_encounter.Monster, CombatResult);
-
-                _hudUI.PrintCombatLog(CombatResult, _encounter);
-
-                if (_encounter.Monster.HealthCurrent > 0)
-                {
-                    CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
-
-                    GetCombatOutcome(_encounter.Player, CombatResult);
-
-                    _hudUI.PrintCombatLog(CombatResult, _encounter);
-                }
+                ResolvePlayerDefend();   // ny minimal metod
             }
+            else if (skillId == 1)
+            {
+                ResolvePlayerBite();     // befintlig bite-logik
+                SetSkillCooldown(1, 3);
+            }
+            TickSkillCooldowns();
         }
 
         if (_hudUI.Attack == true)
@@ -161,9 +147,7 @@ public class CombatScene : Scene
                 }
             }
 
-
-            if (_encounter.Player.SkillCD > 0)
-                _encounter.Player.SkillCD--;
+            TickSkillCooldowns();
         }
 
         if (_hudUI.EndCombat)
@@ -174,12 +158,9 @@ public class CombatScene : Scene
 
         _hudUI.Sync(Core.GraphicsDevice.Viewport, _encounter, CombatResult);
 
-        CombatResult = null;
-        _hudUI.Defend = false;
-        _hudUI.Attack = false;
-        _hudUI.Skill = false;
+        _hudUI.ResetTurnInput();
 
-        _hudUI.IsAttackMade = _encounter.Player.IsAttacking;
+        _hudUI.IsAttackMade = _encounter.Player.IsActionLocked;
         _hudUI.Update(gameTime);
     }
 
@@ -195,6 +176,79 @@ public class CombatScene : Scene
         {
             Core.ChangeScene(new GameOverScene());
         }
+    }
+
+    private void ResolvePlayerBite()
+    {
+        actionRoll = Rand.NextDouble();
+
+        if (actionRoll > 0.5)
+        {
+            CombatResult = _encounter.Player.Attack(_encounter.Monster, true, true);
+
+            GetCombatOutcome(_encounter.Monster, CombatResult);
+
+            _hudUI.PrintCombatLog(CombatResult, _encounter);
+        }
+        else
+        {
+            CombatResult = _encounter.Player.Attack(_encounter.Monster, false, true);
+            GetCombatOutcome(_encounter.Monster, CombatResult);
+
+            _hudUI.PrintCombatLog(CombatResult, _encounter);
+
+            if (_encounter.Monster.HealthCurrent > 0)
+            {
+                CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
+
+                GetCombatOutcome(_encounter.Player, CombatResult);
+
+                _hudUI.PrintCombatLog(CombatResult, _encounter);
+            }
+        }
+    }
+
+    private void ResolvePlayerDefend()
+    {
+        _encounter.Player.BeginDefendAction();
+
+        var defendResult = new CombatActionResult(
+            CombatActionType.Defend,
+            _encounter.Player.EntityId,
+            CombatActionType.None,
+            _encounter.Monster.EntityId,
+            CombatOutcomeKind.Rest,
+            0);
+
+        _hudUI.PrintCombatLog(defendResult, _encounter);
+
+        actionRoll = Rand.NextDouble();
+        if (actionRoll <= 0.5)
+            return;
+
+        CombatResult = _encounter.Monster.Attack(_encounter.Player, isTargetDefending: true);
+        GetCombatOutcome(_encounter.Player, CombatResult);
+        _hudUI.PrintCombatLog(CombatResult, _encounter);
+    }
+
+    private bool IsSkillOnCooldown(int skillId)
+    {
+        var cds = _encounter.Player.SkillCooldowns;
+        return cds != null && cds.TryGetValue(skillId, out int cd) && cd > 0;
+    }
+
+    private void SetSkillCooldown(int skillId, int turns)
+    {
+        _encounter.Player.SkillCooldowns ??= new Dictionary<int, int>();
+        _encounter.Player.SkillCooldowns[skillId] = turns;
+    }
+
+    private void TickSkillCooldowns()
+    {
+        if (_encounter.Player.SkillCooldowns == null) return;
+        foreach (var key in _encounter.Player.SkillCooldowns.Keys.ToList())
+            if (_encounter.Player.SkillCooldowns[key] > 0)
+                _encounter.Player.SkillCooldowns[key]--;
     }
 
     private void EndCombat()

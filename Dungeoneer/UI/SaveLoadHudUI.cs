@@ -17,10 +17,8 @@ public class SaveLoadHudUI : ContainerRuntime
     private ContainerRuntime _buttonColumn;
 
     private AnimatedButton _loadGameButton;
-    private AnimatedButton _confirmLoadButton;
 
     private AnimatedButton _saveGameButton;
-    private AnimatedButton _confirmSaveButton;
 
     private AnimatedButton _backButton;
 

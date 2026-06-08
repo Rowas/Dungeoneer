@@ -21,8 +21,11 @@ public class PlayerCharacter : ActorBase
     public int XPToNextLevel { get; set; } = 15;
     public List<(string, int)> Skills { get; set; } = new List<(string, int)>
     {
-        ("Bite", 0)
+        ("Defend!", 0),
+        ("Bite!", 1)
     };
+
+    public Dictionary<int, int> SkillCooldowns = new();
 
     private readonly Queue<Vector2> _inputBuffer = new(0);
 
@@ -92,7 +95,7 @@ public class PlayerCharacter : ActorBase
         CurrentLevel = session.Player.CurrentLevel;
         CurrentXP = session.Player.CurrentXP;
         XPToNextLevel = session.Player.XPToNextLevel;
-        SkillCD = session.Player.skillCD;
+        SkillCooldowns = session.Player.SkillCooldowns;
     }
 
     public void RestoreCollectedItems(IEnumerable<CollectedItemState> collectedEquipment)
