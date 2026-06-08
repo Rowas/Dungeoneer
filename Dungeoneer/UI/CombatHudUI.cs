@@ -215,16 +215,26 @@ public class CombatHudUI : ContainerRuntime
         if (IsAttackMade)
         {
             _combatCommandsPanel.IsVisible = false;
+            _combatCommandsPanel.Visual.Visible = false;
         }
         else
         {
             _combatCommandsPanel.IsVisible = true;
+            _combatCommandsPanel.Visual.Visible = true;
+
+            if (!_skillsColumn.Visible)
+            {
+                _combatButtonColumn.Visible = true;
+                _combatButtonColumn.IsEnabled = true;
+            }
         }
 
         if (_endOfCombatButtonColumn.Visible)
         {
             _skillsColumn.Visible = false;
             _skillsColumn.IsEnabled = false;
+            _combatButtonColumn.Visible = false;
+            _combatButtonColumn.IsEnabled = false;
         }
 
         GumService.Default.Update(gameTime);
@@ -259,7 +269,6 @@ public class CombatHudUI : ContainerRuntime
 
         UpdateSkillCooldownUi(encounter.Player.SkillCooldowns);
     }
-
 
     private void UpdateCombatInfoText()
     {
@@ -640,9 +649,14 @@ public class CombatHudUI : ContainerRuntime
         if (IsAttackMade)
             return;
 
+        var btn = (AnimatedButton)sender;
+
         Defend = true;
 
-        HandleSkillWindow(sender, e);  // stäng skill-menyn om den är öppen
+        btn.IsFocused = false;
+        _attackButton.IsFocused = true;
+
+        CloseSkillMenuForAction();  // stäng skill-menyn om den är öppen
     }
 
     private void HandleSkillWindow(object sender, EventArgs e)
@@ -684,7 +698,10 @@ public class CombatHudUI : ContainerRuntime
 
         Skill = true;
 
-        HandleSkillWindow(sender, e);  // stäng skill-menyn om den är öppen
+        btn.IsFocused = false;
+        _attackButton.IsFocused = true;
+
+        CloseSkillMenuForAction();  // stäng skill-menyn om den är öppen
     }
 
     private void HandleAttack(object sender, EventArgs e)
@@ -730,5 +747,17 @@ public class CombatHudUI : ContainerRuntime
             first.Button.IsFocused = true;
         else
             _backButton.IsFocused = true;
+    }
+
+    private void CloseSkillMenuForAction()
+    {
+        _combatCommandsPanel.IsVisible = false;
+        _combatCommandsPanel.Visual.Visible = false;  // ← viktig
+
+        _skillsColumn.Visible = false;
+        _skillsColumn.IsEnabled = false;
+
+        _combatButtonColumn.Visible = false;
+        _combatButtonColumn.IsEnabled = false;
     }
 }

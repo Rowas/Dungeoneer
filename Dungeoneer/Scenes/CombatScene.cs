@@ -160,7 +160,7 @@ public class CombatScene : Scene
 
         _hudUI.ResetTurnInput();
 
-        _hudUI.IsAttackMade = _encounter.Player.IsAttacking;
+        _hudUI.IsAttackMade = _encounter.Player.IsActionLocked;
         _hudUI.Update(gameTime);
     }
 
@@ -210,6 +210,8 @@ public class CombatScene : Scene
 
     private void ResolvePlayerDefend()
     {
+        _encounter.Player.BeginDefendAction();
+
         var defendResult = new CombatActionResult(
             CombatActionType.Defend,
             _encounter.Player.EntityId,
