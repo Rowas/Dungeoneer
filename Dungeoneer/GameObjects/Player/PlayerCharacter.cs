@@ -25,6 +25,8 @@ public class PlayerCharacter : ActorBase
         ("Bite!", 1)
     };
 
+    public Dictionary<int, int> SkillCooldowns = new();
+
     private readonly Queue<Vector2> _inputBuffer = new(0);
 
     public PlayerCharacter(
@@ -93,7 +95,7 @@ public class PlayerCharacter : ActorBase
         CurrentLevel = session.Player.CurrentLevel;
         CurrentXP = session.Player.CurrentXP;
         XPToNextLevel = session.Player.XPToNextLevel;
-        SkillCD = session.Player.skillCD;
+        SkillCooldowns = session.Player.SkillCooldowns;
     }
 
     public void RestoreCollectedItems(IEnumerable<CollectedItemState> collectedEquipment)

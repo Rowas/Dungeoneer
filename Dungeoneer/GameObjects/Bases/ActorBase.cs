@@ -335,7 +335,7 @@ public abstract class ActorBase
         var defenderAction = isTargetDefending ? CombatActionType.Defend : CombatActionType.None;
         var outcome = (isTargetDefending && damage <= 0) ? CombatOutcomeKind.Blocked : CombatOutcomeKind.Hit;
 
-        return BuildCombatResult(defenderAction, target.EntityId, outcome, damage);
+        return BuildCombatResult(defenderAction, target.EntityId, outcome, damage, skill);
     }
 
     private void BeginAttackAnimation()
@@ -362,16 +362,16 @@ public abstract class ActorBase
         CombatActionType defenderAction,
         int targetEntityId,
         CombatOutcomeKind outcome,
-        int damageDealt)
+        int damageDealt,
+        bool skill = false)
     {
         return new CombatActionResult(
-            CombatActionType.Attack,
+            skill ? CombatActionType.Skill : CombatActionType.Attack,
             EntityId,
             defenderAction,
             targetEntityId,
             outcome,
-            damageDealt
-        );
+            damageDealt);
     }
 
     public enum CombatActionType { Attack, Defend, Skill, None }

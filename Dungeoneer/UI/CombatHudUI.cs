@@ -12,6 +12,7 @@ using MonoGameLibrary.Graphics;
 using RenderingLibrary.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Dungeoneer.GameObjects.Bases.ActorBase;
 
 namespace Dungeoneer.UI;
@@ -35,9 +36,10 @@ public class CombatHudUI : ContainerRuntime
     private AnimatedButton _backButton;
 
     private List<AnimatedButton> _skillButtonsList = new();
+    private Dictionary<int, int> _skillCooldowns = new();  // skillId -> turns left
 
     private TextRuntime _combatEndedText;
-    private TextRuntime _skillCooldownLabel;
+    //private TextRuntime _skillCooldownLabel;
     private TextRuntime _commandInfoText;
 
     private TextRuntime _monsterHP;
@@ -55,6 +57,9 @@ public class CombatHudUI : ContainerRuntime
     private int _minDmg;
     private int _maxDmg;
 
+    private const float SkillRowStartY = 20f;   // första raden
+    private const float SkillRowStepY = 25f;   // samma som Attack(25), Skills(50), Flee(75)
+
     private bool _isFirstUpdate = true;
 
     private const float HpGapViewportFraction = 0.075f;
@@ -70,6 +75,8 @@ public class CombatHudUI : ContainerRuntime
     public bool Skill { get; set; } = false;
     public bool EndCombat { get; set; } = false;
     private int _lastSkillCd { get; set; } = -1;
+    public int? SelectedSkillId { get; internal set; }
+
 
     public CombatHudUI(PlayerCharacter player)
     {
@@ -213,6 +220,13 @@ public class CombatHudUI : ContainerRuntime
         {
             _combatCommandsPanel.IsVisible = true;
         }
+
+        if (_endOfCombatButtonColumn.Visible)
+        {
+            _skillsColumn.Visible = false;
+            _skillsColumn.IsEnabled = false;
+        }
+
         GumService.Default.Update(gameTime);
     }
 
@@ -228,9 +242,27 @@ public class CombatHudUI : ContainerRuntime
             _combatLog1.Text = "You have encountered a " + encounter.Monster.ActorName + "!";
             _isFirstUpdate = false;
 
-            UpdateSkillCooldown(encounter.Player.SkillCD);
+            UpdateSkillCooldownUi(encounter.Player.SkillCooldowns);
         }
 
+        UpdateCombatInfoText();
+
+        _minDmg = encounter.Player.MinDamage;
+        _maxDmg = encounter.Player.MaxDamage;
+
+        _playerHP.Text = string.Format(s_hpFormat,
+            encounter.Player.HealthCurrent, encounter.Player.HealthPool);
+        _monsterHP.Text = string.Format(s_hpFormat,
+            encounter.Monster.HealthCurrent, encounter.Monster.HealthPool);
+        LayoutHpAboveActor(viewport, _playerHpStack, encounter.Player);
+        LayoutHpAboveActor(viewport, _monsterHpStack, encounter.Monster);
+
+        UpdateSkillCooldownUi(encounter.Player.SkillCooldowns);
+    }
+
+
+    private void UpdateCombatInfoText()
+    {
         if (_attackButton.IsFocused == true)
         {
             _commandInfoText.Text = GetCommandInfo(_attackButton.Text);
@@ -245,66 +277,74 @@ public class CombatHudUI : ContainerRuntime
         }
         else if (_skillsColumn.Visible == true)
         {
-            foreach (var skill in _skillButtonsList)
+            foreach (var row in _skillRows)
             {
-                if (skill.IsFocused == true)
+                if (row.Button.IsFocused == true)
                 {
-                    _commandInfoText.Text = GetCommandInfo(skill.Text);
+                    _commandInfoText.Text = GetCommandInfo(row.Button.Text);
                     break;
                 }
             }
+            if (_backButton.IsFocused == true)
+            {
+                _commandInfoText.Text = GetCommandInfo(_backButton.Text);
+            }
         }
-        else if (_backButton.IsFocused == true)
+        else if (_endCombatButton.IsFocused == true)
         {
-            _commandInfoText.Text = GetCommandInfo(_backButton.Text);
+            _commandInfoText.Text = GetCommandInfo(_endCombatButton.Text);
         }
         else
         {
             _commandInfoText.Text = " ";
         }
-
-        _minDmg = encounter.Player.MinDamage;
-        _maxDmg = encounter.Player.MaxDamage;
-
-        _playerHP.Text = string.Format(s_hpFormat,
-            encounter.Player.HealthCurrent, encounter.Player.HealthPool);
-        _monsterHP.Text = string.Format(s_hpFormat,
-            encounter.Monster.HealthCurrent, encounter.Monster.HealthPool);
-        LayoutHpAboveActor(viewport, _playerHpStack, encounter.Player);
-        LayoutHpAboveActor(viewport, _monsterHpStack, encounter.Monster);
-
-        UpdateSkillCooldown(encounter.Player.SkillCD);
     }
 
-    private void UpdateSkillCooldown(int cd)
+    private void UpdateSkillCooldownUi(Dictionary<int, int> cooldowns)
     {
-        bool changed = cd != _lastSkillCd;
+        if (_endOfCombatButtonColumn.Visible)
+            return;
 
-        if (cd > 0)
+        cooldowns ??= new();
+        foreach (var row in _skillRows)
         {
-            if (_skillButton.IsFocused)
-                _attackButton.IsFocused = true;
+            int cd = cooldowns.TryGetValue(row.SkillId, out int v) ? v : 0;
 
-            //_useSkillButton.IsFocused = false;
-            //_useSkillButton.IsEnabled = false;
-            //_useSkillButton.IsVisible = false;
+            if (row.CooldownLabel == null)
+                continue; // Defend m.m. — ingen CD-UI
 
-            _skillCooldownLabel.Visible = true;
+            if (cd > 0)
+            {
+                bool wasFocused = row.Button.IsFocused;
 
-            if (changed)
-                _skillCooldownLabel.Text = $"Skill cooldown: {cd}";
+                row.Button.IsEnabled = false;
+                row.Button.IsVisible = false;
+                row.Button.IsFocused = false;
+
+                row.CooldownLabel.Visible = true;
+                row.CooldownLabel.Text = $"CD: {cd}";  // eller "Bite! (CD: 2)"
+
+                if (wasFocused && _skillsColumn.Visible)
+                    FocusFirstUsableSkillMenuItem();
+            }
+            else
+            {
+                row.Button.IsEnabled = true;
+                row.Button.IsVisible = true;
+
+                row.CooldownLabel.Visible = false;
+                row.CooldownLabel.Text = " ";
+            }
         }
-        else
+
+        if (_skillsColumn.Visible && _skillsColumn.IsEnabled)
         {
-            _skillButton.IsEnabled = true;
-            _skillCooldownLabel.Visible = false;
-            _skillButton.IsVisible = true;
-
-            if (changed)
-                _skillCooldownLabel.Text = " ";
+            bool anyFocused =
+                _skillRows.Any(r => r.Button.IsFocused) ||
+                _backButton.IsFocused;
+            if (!anyFocused)
+                FocusFirstUsableSkillMenuItem();
         }
-
-        _lastSkillCd = cd;
     }
 
     private void LayoutHpAboveActor(Viewport vp, ContainerRuntime stack, ActorBase actor)
@@ -325,37 +365,35 @@ public class CombatHudUI : ContainerRuntime
 
     public void PrintCombatLog(CombatActionResult combatResult, CombatEncounter encounter)
     {
+        PushCombatLogLine(combatResult.ToLogLine(encounter), encounter);
+    }
+    public void PushCombatLogLine(string line, CombatEncounter encounter)
+    {
         if (_combatLog2.Text != "")
             _combatLog2.Text = _combatLog1.Text;
-
-        if (combatResult.Outcome == CombatOutcomeKind.Rest)
-        {
-            _combatLog1.Text = $"{GetActorName(encounter, combatResult.ActorEntityId)} and {GetActorName(encounter, combatResult.TargetEntityId)} both took defensive action.";
-        }
-        if (combatResult.Outcome == CombatOutcomeKind.Blocked)
-        {
-            _combatLog1.Text = $"{GetActorName(encounter, combatResult.ActorEntityId)} {combatResult.AttackerAction} and was blocked by {GetActorName(encounter, combatResult.TargetEntityId)}!";
-        }
-        else
-        {
-            _combatLog1.Text = $"{GetActorName(encounter, combatResult.ActorEntityId)} {combatResult.AttackerAction} and {combatResult.Outcome} {GetActorName(encounter, combatResult.TargetEntityId)} for {combatResult.DamageDealt} damage!";
-            if (combatResult.DefenderAction == CombatActionType.Defend)
-            {
-                _combatLog1.Text += $" {GetActorName(encounter, combatResult.TargetEntityId)} was defending!";
-            }
-        }
-
+        _combatLog1.Text = line;
         if (encounter.Monster.HealthCurrent <= 0)
         {
-            _combatLog1.Text += $" {GetActorName(encounter, combatResult.TargetEntityId)} was defeated!";
-            _combatButtonColumn.Visible = false;
-            _combatButtonColumn.IsEnabled = false;
-
-            _endOfCombatButtonColumn.IsEnabled = true;
-            _endOfCombatButtonColumn.Visible = true;
-
-            _endCombatButton.IsFocused = true;
+            _combatLog1.Text += $" {encounter.Monster.ActorName} was defeated!";
+            ShowEndCombatUi();
         }
+    }
+
+    private void ShowEndCombatUi()
+    {
+        _combatButtonColumn.Visible = false;
+        _combatButtonColumn.IsEnabled = false;
+
+        _skillsColumn.Visible = false;
+        _skillsColumn.IsEnabled = false;
+
+        foreach (var row in _skillRows)
+            row.Button.IsFocused = false;
+        _backButton.IsFocused = false;
+
+        _endOfCombatButtonColumn.Visible = true;
+        _endOfCombatButtonColumn.IsEnabled = true;
+        _endCombatButton.IsFocused = true;
     }
 
     private void InitializeCombatLog()
@@ -422,7 +460,6 @@ public class CombatHudUI : ContainerRuntime
         AddChild(_controlStack);
 
         _combatButtonColumn = CreateColumn();
-        _controlStack.AddChild(_combatButtonColumn);
 
         _combatCommandsPanel = CreateCommandPanel(GameAssets.GameObjectAtlas);
         _combatCommandsPanel.AddChild(_combatButtonColumn);
@@ -448,19 +485,6 @@ public class CombatHudUI : ContainerRuntime
 
         _combatButtonColumn.AddChild(_skillButton);
 
-        _skillCooldownLabel = LogLine();
-        _skillCooldownLabel.Text = " ";
-        _skillCooldownLabel.Visible = false;
-
-        _skillCooldownLabel.Anchor(Gum.Wireframe.Anchor.Center);
-        _skillCooldownLabel.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _skillCooldownLabel.Y = _skillButton.Y;
-        _skillCooldownLabel.XUnits = _skillButton.XUnits;
-        _skillCooldownLabel.X = _skillButton.X;
-        _skillCooldownLabel.HorizontalAlignment = HorizontalAlignment.Center;
-
-        _combatButtonColumn.AddChild(_skillCooldownLabel);
-
         _fleeButton = new AnimatedButton(GameAssets.GameObjectAtlas);
         _fleeButton.Text = "Flee!";
         _fleeButton.Click += HandleFlee;
@@ -476,21 +500,26 @@ public class CombatHudUI : ContainerRuntime
         _skillsColumn = CreateColumn();
         _skillsColumn.Visible = false;
         _skillsColumn.IsEnabled = false;
-        _controlStack.AddChild(_skillsColumn);
+        _combatCommandsPanel.AddChild(_skillsColumn);
 
-        foreach (var skill in player.Skills)
+        for (int i = 0; i < player.Skills.Count; i++)
         {
+            var (text, skillId) = player.Skills[i];
             var btn = new AnimatedButton(GameAssets.GameObjectAtlas);
-            btn.Name = skill.Item2.ToString();
-            btn.Text = skill.Item1;
-            btn.Click += HandleSkillUse;
             btn.Anchor(Gum.Wireframe.Anchor.Center);
             btn.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-            btn.Y = 0 + (player.Skills.IndexOf(skill) * 25);
-
+            btn.Y = SkillRowStartY + i * SkillRowStepY;
+            btn.Name = skillId.ToString();
+            btn.Text = text;  // alltid "Bite!" — ändra ALDRIG för CD
+            btn.Click += HandleSkillUse;
             _skillsColumn.AddChild(btn);
-
-            _skillButtonsList.Add(btn);
+            TextRuntime cdLabel = null;
+            if (HasCooldown(skillId))  // se nedan
+            {
+                cdLabel = InitializeCooldownLabel(btn);
+                _skillsColumn.AddChild(cdLabel);
+            }
+            _skillRows.Add(new SkillRowUi { SkillId = skillId, Button = btn, CooldownLabel = cdLabel });
         }
 
         _backButton = new AnimatedButton(GameAssets.GameObjectAtlas);
@@ -498,9 +527,26 @@ public class CombatHudUI : ContainerRuntime
         _backButton.Click += HandleSkillWindow;
         _backButton.Anchor(Gum.Wireframe.Anchor.Center);
         _backButton.YUnits = Gum.Converters.GeneralUnitType.Percentage;
-        _backButton.Y = 0 + (player.Skills.Count * 25);
+        _backButton.Y = SkillRowStartY + player.Skills.Count * SkillRowStepY;
 
         _skillsColumn.AddChild(_backButton);
+    }
+
+    private TextRuntime InitializeCooldownLabel(AnimatedButton skill)
+    {
+        var cooldownLabel = LogLine();
+        cooldownLabel.Text = " ";
+        cooldownLabel.Visible = false;
+        cooldownLabel.Color = Color.Gray;
+
+        cooldownLabel.Anchor(Gum.Wireframe.Anchor.Center);
+        cooldownLabel.YUnits = skill.YUnits;
+        cooldownLabel.Y = skill.Y;
+        cooldownLabel.XUnits = skill.XUnits;
+        cooldownLabel.X = skill.X;
+        cooldownLabel.HorizontalAlignment = HorizontalAlignment.Center;
+
+        return cooldownLabel;
     }
 
     private void InitializeCombatCommandsInfo()
@@ -580,14 +626,6 @@ public class CombatHudUI : ContainerRuntime
         };
     }
 
-    private string GetActorName(CombatEncounter encounter, int entityId)
-    {
-        if (encounter.Player.EntityId == entityId)
-            return encounter.Player.ActorName;
-        else
-            return encounter.Monster.ActorName;
-    }
-
     private void HandleFlee(object sender, EventArgs e)
     {
         if (IsAttackMade)
@@ -603,10 +641,15 @@ public class CombatHudUI : ContainerRuntime
             return;
 
         Defend = true;
+
+        HandleSkillWindow(sender, e);  // stäng skill-menyn om den är öppen
     }
 
     private void HandleSkillWindow(object sender, EventArgs e)
     {
+        if (_endOfCombatButtonColumn.Visible)
+            return;
+
         _skillsColumn.IsEnabled = !_skillsColumn.IsEnabled;
         _skillsColumn.Visible = !_skillsColumn.Visible;
         _combatButtonColumn.Visible = !_combatButtonColumn.Visible;
@@ -618,17 +661,30 @@ public class CombatHudUI : ContainerRuntime
         }
         else
         {
-            _skillButton.IsFocused = false;
-            _skillButtonsList[0].IsFocused = true;
+            var firstUsable = _skillRows.FirstOrDefault(r => r.Button.IsVisible && r.Button.IsEnabled);
+            (firstUsable?.Button ?? _backButton).IsFocused = true;
+        }
+
+        if (Attack || Skill || Defend)
+        {
+            var btn = (AnimatedButton)sender;
+
+            btn.IsFocused = false;
+            _attackButton.IsFocused = true;
         }
     }
 
     private void HandleSkillUse(object sender, EventArgs e)
     {
-        if (IsAttackMade)
-            return;
+        if (IsAttackMade) return;
+
+        var btn = (AnimatedButton)sender;
+
+        SelectedSkillId = int.Parse(btn.Name);
 
         Skill = true;
+
+        HandleSkillWindow(sender, e);  // stäng skill-menyn om den är öppen
     }
 
     private void HandleAttack(object sender, EventArgs e)
@@ -642,5 +698,37 @@ public class CombatHudUI : ContainerRuntime
     private void HandleEndCombat(object sender, EventArgs e)
     {
         EndCombat = true;
+    }
+
+    public void ResetTurnInput()
+    {
+        Attack = false;
+        Skill = false;
+        Defend = false;
+        SelectedSkillId = null;
+    }
+
+    private sealed class SkillRowUi
+    {
+        public int SkillId;
+        public AnimatedButton Button;
+        public TextRuntime CooldownLabel;  // null om skillen saknar CD
+    }
+
+    private readonly List<SkillRowUi> _skillRows = new();
+
+    private static bool HasCooldown(int skillId) => skillId switch
+    {
+        1 => true,   // Bite
+        _ => false   // Defend, framtida no-CD skills
+    };
+
+    private void FocusFirstUsableSkillMenuItem()
+    {
+        var first = _skillRows.FirstOrDefault(r => r.Button.IsVisible && r.Button.IsEnabled);
+        if (first != null)
+            first.Button.IsFocused = true;
+        else
+            _backButton.IsFocused = true;
     }
 }
