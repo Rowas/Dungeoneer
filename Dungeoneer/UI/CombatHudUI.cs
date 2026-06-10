@@ -615,7 +615,8 @@ public class CombatHudUI : ContainerRuntime
     {
         return command switch
         {
-            "Attack!" => "A basic attack with no cooldown. Can be used every turn. " +
+            "Attack!" => "A basic attack with no cooldown. " +
+            "Can be used every turn. " +
             $"Deals {_minDmg} to {_maxDmg} damage. ",
 
             "Flee!" => "Escape from the current encounter. ",
@@ -627,7 +628,12 @@ public class CombatHudUI : ContainerRuntime
             "Defend!" => "Take a defensive stance, doubling your ARM for one turn. Can be used every turn. ",
 
             "Bite!" => "A powerful attack that deals 200% attack damage. 5% chance to execute. " +
-            "Increased to 20% when target has less than 20% HP. Has a 3 turn cooldown. ",
+            "Increased to 20% when target has less than 20% HP. Has a 3 turn cooldown. " +
+            $"Deals {_minDmg * 2} to {_maxDmg * 2} damage. ",
+
+            "Consume!" => "Chance equal to the target's missing health to consume the target and heal for the targets remaining health. " +
+            "Failed attacks deal half damage and provide a small heal. Has a 3 turn cooldown. " +
+            $"Deals {_minDmg / 2} to {_maxDmg / 2} damage on failure. ",
 
             "Back" => "Return to the default command window. ",
 
@@ -737,6 +743,7 @@ public class CombatHudUI : ContainerRuntime
     private static bool HasCooldown(int skillId) => skillId switch
     {
         1 => true,   // Bite
+        2 => true,   // Consume
         _ => false   // Defend, framtida no-CD skills
     };
 

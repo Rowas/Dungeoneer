@@ -35,7 +35,12 @@ public class SaveGameService
         var filePath = Path.Combine(dir, $"{saveFileName}.json");
 
         var json = File.ReadAllText(filePath);
-        return JsonSerializer.Deserialize<GameSession>(json, jsonOptions);
+        var session = JsonSerializer.Deserialize<GameSession>(json, jsonOptions);
+
+        if (GameSessionMigration.Migrate(session))
+            SaveGame(session, saveFileName);
+
+        return session;
     }
 
     public bool SaveGameExists(string saveFileName = "savegame")

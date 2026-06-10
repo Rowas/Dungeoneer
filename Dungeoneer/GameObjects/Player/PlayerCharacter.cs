@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using MonoGameLibrary.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dungeoneer.GameObjects.Player;
 
@@ -96,6 +97,7 @@ public class PlayerCharacter : ActorBase
         CurrentXP = session.Player.CurrentXP;
         XPToNextLevel = session.Player.XPToNextLevel;
         SkillCooldowns = session.Player.SkillCooldowns;
+        Skills = session.Player.Skills.Select(s => (s.Name, s.Id)).ToList();
     }
 
     public void RestoreCollectedItems(IEnumerable<CollectedItemState> collectedEquipment)

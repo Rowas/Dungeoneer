@@ -127,6 +127,9 @@ public class CreditsHudUI : ContainerRuntime
         new CreditEntry { Role = "Boss Monster Art", Name = "deepdivegamestudio", URL = "https://deepdivegamestudio.itch.io/undead-asset-pack" },
         new CreditEntry { Role = "Vermin Monster Art", Name = "deepdivegamestudio", URL = "https://deepdivegamestudio.itch.io/vermin-asset-pack" },
         new CreditEntry { Role = "Monster Monster Art", Name = "deepdivegamestudio", URL = "https://deepdivegamestudio.itch.io/monsterassetpack" },
-        new CreditEntry { Role = "Game Over Splash Art", Name = "gurigraphics", URL = "https://gurigraphics.itch.io/game-over-screen" }
+        new CreditEntry { Role = "Game Over Splash Art", Name = "gurigraphics", URL = "https://gurigraphics.itch.io/game-over-screen" },
+        new CreditEntry { Role = "Original music by: ", Name = "Marllon Silva (xDeviruchi)", URL = "https://www.youtube.com/xdeviruchi" },
+        new CreditEntry { Role = "Sound Effects", Name = "JDSherbert", URL = "https://jdsherbert.itch.io/pixel-game-essentials-sfx-pack" },
+        new CreditEntry { Role = "Sound Effects", Name = "Leohpaz", URL = "https://leohpaz.itch.io/minifantasy-dungeon-sfx-pack" }
     };
 }

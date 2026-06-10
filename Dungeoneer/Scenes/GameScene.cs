@@ -7,6 +7,7 @@ using Dungeoneer.Maps;
 using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
@@ -146,6 +147,16 @@ public class GameScene : Scene
         base.Initialize();
 
         InitializeUI();
+
+        MediaPlayer.IsRepeating = true;
+        MediaPlayer.Volume = 0.20f;
+
+        if (MediaPlayer.State == MediaState.Playing)
+        {
+            MediaPlayer.Stop();
+        }
+
+        MediaPlayer.Play(GameAssets.ExplorationMapBGM);
 
         Core.ExitOnEscape = false;
     }

@@ -1,4 +1,5 @@
 ﻿using Dungeoneer.GameObjects.Bases;
+using Dungeoneer.GameObjects.Helpers;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary.Graphics;
 
@@ -23,6 +24,7 @@ public class Armor : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
+        GameAssets.PickupArmorSFX.Play();
         player.CollectedItemKeys.Add(PropName);
         player.Armor += ArmorBoosValue;
         IsCollected = true;

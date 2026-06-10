@@ -27,7 +27,7 @@ public class DungeonMap
 
     private static readonly int[] _wallBitmaskToTile = new int[16]
     {
-        31,  //  0  □  Isolated — no wall neighbors
+        30,  //  0  □  Isolated — no wall neighbors
         6,  //  1  ╨  North only
         14,  //  2  ╞  East only
         8,  //  3  ╚  North + East

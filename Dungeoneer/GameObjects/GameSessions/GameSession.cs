@@ -9,7 +9,7 @@ namespace Dungeoneer.GameObjects.GameSessions;
 
 public sealed class GameSession
 {
-    public int SaveVersion { get; set; } = 1;
+    public int SaveVersion { get; set; } = GameSessionMigration.CurrentSaveVersion;
     public string Level { get; set; } = string.Empty;
     public int TileSize { get; set; } = 64;
     public Vector2 CameraPosition { get; set; }
@@ -36,6 +36,7 @@ public sealed class PlayerSessionState
     public int MaxDamage { get; set; }
     public int Armor { get; set; }
     public Dictionary<int, int> SkillCooldowns { get; set; }
+    public List<SkillState> Skills { get; set; }
 }
 
 public sealed class MonsterSessionState
@@ -76,6 +77,12 @@ public sealed class CollectedItemState
     public string ItemKey { get; set; } = string.Empty;
 }
 
+public sealed class SkillState
+{
+    public string Name { get; set; } = string.Empty;
+    public int Id { get; set; }
+}
+
 public static class GameSessionCombatExtensions
 {
     public static void ApplyCombatOutcome(this GameSession session, CombatOutcome outcome)
@@ -90,6 +97,7 @@ public static class GameSessionCombatExtensions
             {
                 session.Monsters[i].IsAlive = false;
                 session.Player.CurrentXP += outcome.XPGained;
+                session.Player.SkillCooldowns = session.Player.SkillCooldowns.ToDictionary(kvp => kvp.Key, kvp => 0);
             }
             else
             {
@@ -108,7 +116,7 @@ public static class GameSessionExtensions
     {
         GameSession currentSession = new GameSession
         {
-            SaveVersion = 1,
+            SaveVersion = GameSessionMigration.CurrentSaveVersion,
             Level = _level,
             TileSize = 64,
             Player = new PlayerSessionState
@@ -124,6 +132,7 @@ public static class GameSessionExtensions
                 MaxDamage = _playerCharacter.MaxDamage,
                 Armor = _playerCharacter.Armor,
                 SkillCooldowns = _playerCharacter.SkillCooldowns,
+                Skills = _playerCharacter.Skills.Select(s => new SkillState { Name = s.Item1, Id = s.Item2 }).ToList(),
             },
             Monsters = new List<MonsterSessionState>(),
             Props = new List<PropSessionState>(),

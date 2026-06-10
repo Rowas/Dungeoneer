@@ -1,4 +1,5 @@
 ﻿using Dungeoneer.GameObjects.Bases;
+using Dungeoneer.GameObjects.Helpers;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary.Graphics;
 
@@ -22,6 +23,7 @@ public class Weapon : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
+        GameAssets.PickupWeaponSFX.Play();
         player.CollectedItemKeys.Add(PropName);
         player.MinDamage += DamageBoostValue;
         player.MaxDamage += DamageBoostValue;
