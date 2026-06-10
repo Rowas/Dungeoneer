@@ -5,6 +5,7 @@ using Dungeoneer.Maps;
 using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
@@ -45,6 +46,23 @@ public class CombatScene : Scene
         GumService.Default.Root.Children.Clear();
 
         _hudUI = new CombatHudUI(_encounter.Player);
+
+        MediaPlayer.IsRepeating = true;
+        MediaPlayer.Volume = 0.20f;
+
+        if (MediaPlayer.State == MediaState.Playing)
+        {
+            MediaPlayer.Stop();
+        }
+
+        if (_encounter.Monster.ActorName == "Boss Monster")
+        {
+            MediaPlayer.Play(GameAssets.BossCombatBGM);
+        }
+        else
+        {
+            MediaPlayer.Play(GameAssets.RegularCombatBGM);
+        }
 
         Core.ExitOnEscape = false;
     }
@@ -102,25 +120,37 @@ public class CombatScene : Scene
 
         if (_hudUI.Skill && _hudUI.SelectedSkillId is int skillId)
         {
-            if (skillId == 1 && IsSkillOnCooldown(1))
+            if (IsSkillOnCooldown(skillId))
             {
                 // gör inget — fall through till Sync + reset
             }
             else if (skillId == 0)
             {
-                ResolvePlayerDefend();   // ny minimal metod
+                GameAssets.DefendSFX.Play();
+                ResolvePlayerDefend();
+                SetSkillCooldown(skillId, 0);
             }
             else if (skillId == 1)
             {
-                ResolvePlayerBite();     // befintlig bite-logik
-                SetSkillCooldown(1, 3);
+                GameAssets.BiteConsumeSFX.Play();
+                ResolvePlayerBite();
+                SetSkillCooldown(skillId, 3);
             }
+            else if (skillId == 2)
+            {
+                GameAssets.BiteConsumeSFX.Play();
+                ResolvePlayerConsume();
+                SetSkillCooldown(skillId, 3);
+            }
+
             TickSkillCooldowns();
         }
 
         if (_hudUI.Attack == true)
         {
             actionRoll = Rand.NextDouble();
+
+            GameAssets.AttackSFX.Play();
 
             if (actionRoll > 0.5)
             {
@@ -184,7 +214,7 @@ public class CombatScene : Scene
 
         if (actionRoll > 0.5)
         {
-            CombatResult = _encounter.Player.Attack(_encounter.Monster, true, true);
+            CombatResult = _encounter.Player.Attack(_encounter.Monster, true, "Bite");
 
             GetCombatOutcome(_encounter.Monster, CombatResult);
 
@@ -192,7 +222,35 @@ public class CombatScene : Scene
         }
         else
         {
-            CombatResult = _encounter.Player.Attack(_encounter.Monster, false, true);
+            CombatResult = _encounter.Player.Attack(_encounter.Monster, false, "Bite");
+            GetCombatOutcome(_encounter.Monster, CombatResult);
+
+            _hudUI.PrintCombatLog(CombatResult, _encounter);
+
+            if (_encounter.Monster.HealthCurrent > 0)
+            {
+                CombatResult = _encounter.Monster.Attack(_encounter.Player, false);
+
+                GetCombatOutcome(_encounter.Player, CombatResult);
+
+                _hudUI.PrintCombatLog(CombatResult, _encounter);
+            }
+        }
+    }
+
+    private void ResolvePlayerConsume()
+    {
+        actionRoll = Rand.NextDouble();
+
+        if (actionRoll > 0.5)
+        {
+            CombatResult = _encounter.Player.Attack(_encounter.Monster, true, "Consume");
+            GetCombatOutcome(_encounter.Monster, CombatResult);
+            _hudUI.PrintCombatLog(CombatResult, _encounter);
+        }
+        else
+        {
+            CombatResult = _encounter.Player.Attack(_encounter.Monster, false, "Consume");
             GetCombatOutcome(_encounter.Monster, CombatResult);
 
             _hudUI.PrintCombatLog(CombatResult, _encounter);

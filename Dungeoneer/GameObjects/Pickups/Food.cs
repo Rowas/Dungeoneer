@@ -1,4 +1,5 @@
 ﻿using Dungeoneer.GameObjects.Bases;
+using Dungeoneer.GameObjects.Helpers;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary.Graphics;
 
@@ -21,6 +22,7 @@ public class Food : PropBase
 
     protected override void OnInteract(ActorBase player)
     {
+        GameAssets.HealSFX.Play();
         player.HealthCurrent += HealValue;
 
         if (player.HealthCurrent > player.HealthPool)

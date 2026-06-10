@@ -90,3 +90,75 @@
 #begin LevelFiles/Level3.txt
 /copy:LevelFiles/Level3.txt
 
+#begin Music/02 - Title Theme.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/02 - Title Theme.ogg;Music/TitleTheme.ogg
+
+#begin Music/04 - Silent Forest.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/04 - Silent Forest.ogg;Music/ExplorationMapTheme.ogg
+
+#begin Music/06 - Victory!.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/06 - Victory!.ogg;Music/LevelUpTheme.ogg
+
+#begin Music/09 - Battle 2.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/09 - Battle 2.ogg;Music/RegularBattleTheme.ogg
+
+#begin Music/13 - Decisive Battle 1 - Don't Be Afraid.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/13 - Decisive Battle 1 - Don't Be Afraid.ogg;Music/BossBattleTheme.ogg
+
+#begin Music/18 - Never Give Up.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/18 - Never Give Up.ogg;Music/GameOverTheme.ogg
+
+#begin SoundEffects/08_human_charge_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:SoundEffects/08_human_charge_1.wav;SoundEffects/PickupArmor.wav
+
+#begin SoundEffects/08_human_charge_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:SoundEffects/08_human_charge_2.wav;SoundEffects/PickupWeapon.wav
+
+#begin SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Box Break 1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Box Break 1.wav;SoundEffects/Attack.wav
+
+#begin SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Checkpoint 1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Checkpoint 1.wav;SoundEffects/Defend.wav
+
+#begin SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Die 1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Die 1.wav;SoundEffects/BiteConsume.wav
+
+#begin SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Powerup 2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:SoundEffects/JDSherbert - Pixel Game Essentials SFX Pack - Powerup 2.wav;SoundEffects/Heal.wav
+

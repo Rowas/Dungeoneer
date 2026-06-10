@@ -2,6 +2,7 @@
 using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
@@ -49,6 +50,26 @@ public class TitleScene : Scene
         size = GameAssets.Font5x.MeasureString(SUB_TEXT);
         _subTextPos = new Vector2(halfWidth, thirdHeight);
         _subTextOrigin = size * 0.5f;
+
+        MediaPlayer.IsRepeating = true;
+        MediaPlayer.Volume = 0.20f;
+
+        if (MediaPlayer.State == MediaState.Playing)
+        {
+            if (MediaPlayer.Queue.ActiveSong == GameAssets.TitleScreenBGM)
+            {
+
+            }
+            else
+            {
+                MediaPlayer.Stop();
+                MediaPlayer.Play(GameAssets.TitleScreenBGM);
+            }
+        }
+        else
+        {
+            MediaPlayer.Play(GameAssets.TitleScreenBGM);
+        }
     }
 
     public override void Draw(GameTime gameTime)

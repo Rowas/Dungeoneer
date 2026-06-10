@@ -9,6 +9,12 @@ public static class CombatActionResultExtensions
         string actor = GetActorName(encounter, result.ActorEntityId);
         string target = GetActorName(encounter, result.TargetEntityId);
 
+        if (result.SkillName == "Consume" && result.ConsumeSucceeded == true)
+            return $"{actor} consumed {target} for {result.DamageDealt} damage and healed {result.HealingDealt} HP!";
+
+        if (result.SkillName == "Consume" && result.ConsumeSucceeded == false)
+            return $"{actor} failed to fully consume {target}, dealing {result.DamageDealt} damage and healing {result.HealingDealt} HP!";
+
         return (result.AttackerAction, result.DefenderAction, result.Outcome) switch
         {
             (CombatActionType.Defend, _, _) =>

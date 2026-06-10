@@ -2,6 +2,7 @@
 using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
@@ -24,6 +25,17 @@ public class GameOverScene : Scene
         GumService.Default.Root.Children.Clear();
 
         _gameOverHud = new GameOverHudUI();
+
+        MediaPlayer.IsRepeating = false;
+
+        MediaPlayer.Volume = 0.20f;
+
+        if (MediaPlayer.State == MediaState.Playing)
+        {
+            MediaPlayer.Stop();
+        }
+
+        MediaPlayer.Play(GameAssets.GameOverBGM);
 
         Core.ExitOnEscape = false;
     }

@@ -1,7 +1,9 @@
 ﻿using Dungeoneer.GameObjects.GameSessions;
+using Dungeoneer.GameObjects.Helpers;
 using Dungeoneer.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using MonoGameGum;
 using MonoGameLibrary;
 using MonoGameLibrary.Scenes;
@@ -17,6 +19,7 @@ public class LevelUpScene : Scene
 
     private bool _isLeveledUp = false;
     private LevelUp leveled;
+    private string? nextSkill;
 
     Random rand = new Random();
 
@@ -37,6 +40,18 @@ public class LevelUpScene : Scene
 
         if (_isLeveledUp = ResolveLevelUp(_loadedSession))
         {
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Volume = 0.20f;
+
+            if (MediaPlayer.State == MediaState.Playing)
+            {
+                MediaPlayer.Stop();
+            }
+
+            MediaPlayer.Play(GameAssets.LevelUpBGM);
+
+            Core.ExitOnEscape = false;
+
             ApplyLevelUp(leveled);
 
             GumService.Default.Root.Children.Clear();
@@ -126,6 +141,13 @@ public class LevelUpScene : Scene
                 armorIncrease += 2;
         }
 
+        switch (Session.Player.CurrentLevel + levelIncrease)
+        {
+            case 5:
+                nextSkill = "Consume!";
+                break;
+        }
+
         leveled = new LevelUp
         {
             LevelIncrease = levelIncrease,
@@ -134,7 +156,8 @@ public class LevelUpScene : Scene
             MaxDamageIncrease = maxDmgIncrease,
             ArmorIncrease = armorIncrease,
             OldXPRequirement = OldXPRequirement,
-            NewXPRequirement = NewXPRequirement
+            NewXPRequirement = NewXPRequirement,
+            newSkill = nextSkill
         };
 
         return true;
@@ -149,6 +172,9 @@ public class LevelUpScene : Scene
         _loadedSession.Player.MaxDamage += _levelUp.MaxDamageIncrease;
         _loadedSession.Player.Armor += _levelUp.ArmorIncrease;
         _loadedSession.Player.XPToNextLevel = _levelUp.NewXPRequirement;
+
+        if (!string.IsNullOrEmpty(_levelUp.newSkill))
+            _loadedSession.Player.Skills.Add(new SkillState { Name = _levelUp.newSkill, Id = _loadedSession.Player.Skills.Count });
     }
 
     public int CalculateXpToNextLevel(int PlayerLevel)
@@ -174,4 +200,5 @@ public class LevelUp()
     public int ArmorIncrease { get; set; }
     public int OldXPRequirement { get; set; }
     public int NewXPRequirement { get; set; }
+    public string? newSkill { get; set; } = null;
 }

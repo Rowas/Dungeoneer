@@ -58,7 +58,6 @@ public abstract class ActorBase
     public abstract int MinDamage { get; set; }
     public abstract int MaxDamage { get; set; }
     public abstract int Armor { get; set; }
-    public virtual int SkillCD { get; set; }
     public List<string> CollectedItemKeys { get; set; } = new();
     public virtual int XPValue { get; set; }
     public virtual double CurrentScaling { get; set; }
@@ -320,7 +319,7 @@ public abstract class ActorBase
         return Vector2.Zero;
     }
 
-    public virtual CombatActionResult Attack(ActorBase target, bool isTargetDefending, bool skill = false)
+    public virtual CombatActionResult Attack(ActorBase target, bool isTargetDefending, string? skill = null)
     {
         BeginAttackAnimation();
 
@@ -329,26 +328,49 @@ public abstract class ActorBase
             ? ComputeDamageVsDefend(attackRoll, target.Armor)
             : attackRoll;
 
-        damage = skill ? damage * 2 : damage;
+        double skillcheck;
+        int healingDealt = 0;
+        bool? consumeSucceeded = null;
 
-        if (skill)
+        if (skill != null)
         {
-            var result = rand.NextDouble();
-            if (result >= 0.95)
-                damage = 999; // Execute Target
+            switch (skill)
+            {
+                case "Bite":
+                    damage *= 2;
 
-            if (target.HealthCurrent / (double)target.HealthPool <= 0.2 && result >= 0.8)
-                damage = 999; // Increased execution chance on low health targets
+                    skillcheck = rand.NextDouble();
+                    if (skillcheck >= 0.95)
+                        damage = 999; // Execute Target
 
-            if (SkillCD == 0)
-                SkillCD = 3;
+                    if (target.HealthCurrent / (double)target.HealthPool <= 0.2 && skillcheck >= 0.8)
+                        damage = 999; // Increased execution chance on low health targets
+
+                    break;
+                case "Consume":
+                    skillcheck = rand.NextDouble();
+                    consumeSucceeded = skillcheck >= (double)target.HealthCurrent / target.HealthPool;
+
+                    if (consumeSucceeded == true)
+                    {
+                        damage = target.HealthCurrent;
+                        healingDealt = Math.Min(HealthPool - HealthCurrent, damage);
+                        HealthCurrent += healingDealt;
+                    }
+                    else
+                    {
+                        damage /= 2;
+                        healingDealt = Math.Min(HealthPool - HealthCurrent, damage / 2);
+                        HealthCurrent += healingDealt;
+                    }
+                    break;
+            }
         }
-
 
         var defenderAction = isTargetDefending ? CombatActionType.Defend : CombatActionType.None;
         var outcome = (isTargetDefending && damage <= 0) ? CombatOutcomeKind.Blocked : CombatOutcomeKind.Hit;
 
-        return BuildCombatResult(defenderAction, target.EntityId, outcome, damage, skill);
+        return BuildCombatResult(defenderAction, target.EntityId, outcome, damage, skill, healingDealt, consumeSucceeded);
     }
 
     public void BeginDefendAction()
@@ -385,15 +407,20 @@ public abstract class ActorBase
         int targetEntityId,
         CombatOutcomeKind outcome,
         int damageDealt,
-        bool skill = false)
+        string? skill = null,
+        int healingDealt = 0,
+        bool? consumeSucceeded = null)
     {
         return new CombatActionResult(
-            skill ? CombatActionType.Skill : CombatActionType.Attack,
+            skill != null ? CombatActionType.Skill : CombatActionType.Attack,
             EntityId,
             defenderAction,
             targetEntityId,
             outcome,
-            damageDealt);
+            damageDealt,
+            skill,
+            healingDealt,
+            consumeSucceeded);
     }
 
     public enum CombatActionType { Attack, Defend, Skill, None }
@@ -404,6 +431,9 @@ public abstract class ActorBase
         CombatActionType DefenderAction,
         int TargetEntityId,
         CombatOutcomeKind Outcome,
-        int DamageDealt
+        int DamageDealt,
+        string? SkillName = null,
+        int HealingDealt = 0,
+        bool? ConsumeSucceeded = null
     );
 }
