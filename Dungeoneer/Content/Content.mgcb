@@ -90,9 +90,6 @@
 #begin LevelFiles/Level3.txt
 /copy:LevelFiles/Level3.txt
 
-#begin LevelFiles/Level4.txt
-/copy:LevelFiles/Level4.txt
-
 #begin Music/02 - Title Theme.ogg
 /importer:OggImporter
 /processor:SongProcessor
