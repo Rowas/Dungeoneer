@@ -130,6 +130,6 @@ public class CreditsHudUI : ContainerRuntime
         new CreditEntry { Role = "Game Over Splash Art", Name = "gurigraphics", URL = "https://gurigraphics.itch.io/game-over-screen" },
         new CreditEntry { Role = "Original music by: ", Name = "Marllon Silva (xDeviruchi)", URL = "https://www.youtube.com/xdeviruchi" },
         new CreditEntry { Role = "Sound Effects", Name = "JDSherbert", URL = "https://jdsherbert.itch.io/pixel-game-essentials-sfx-pack" },
-        new CreditEntry { Role = "Sound Effects", Name = "Leohpaz", URL = "https://leohpaz.itch.io/minifantasy-dungeon-sfx-pack" },
+        new CreditEntry { Role = "Sound Effects", Name = "Leohpaz", URL = "https://leohpaz.itch.io/minifantasy-dungeon-sfx-pack" }
     };
 }
