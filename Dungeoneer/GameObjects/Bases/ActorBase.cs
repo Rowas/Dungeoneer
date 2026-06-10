@@ -399,7 +399,7 @@ public abstract class ActorBase
 
     private int ComputeDamageVsDefend(int attackRoll, int targetArmor)
     {
-        return (int)Math.Round((attackRoll - targetArmor) * 0.5f);
+        return (int)Math.Round((attackRoll - (targetArmor * 2f)));
     }
 
     private CombatActionResult BuildCombatResult(

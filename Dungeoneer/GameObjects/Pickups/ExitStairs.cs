@@ -29,9 +29,9 @@ public class ExitStairs : PropBase
 
     public void OnInteract(string NextLevel, PlayerSessionState playerState)
     {
-        if (NextLevel == "level3")
+        if (NextLevel == "level4")
             Core.ChangeScene(new EndOfVersionScene());
-
-        Core.ChangeScene(new GameScene(NextLevel, null, playerState));
+        else
+            Core.ChangeScene(new GameScene(NextLevel, null, playerState));
     }
 }

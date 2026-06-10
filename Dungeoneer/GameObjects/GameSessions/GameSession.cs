@@ -9,7 +9,7 @@ namespace Dungeoneer.GameObjects.GameSessions;
 
 public sealed class GameSession
 {
-    public int SaveVersion { get; set; } = 1;
+    public int SaveVersion { get; set; } = GameSessionMigration.CurrentSaveVersion;
     public string Level { get; set; } = string.Empty;
     public int TileSize { get; set; } = 64;
     public Vector2 CameraPosition { get; set; }
@@ -116,7 +116,7 @@ public static class GameSessionExtensions
     {
         GameSession currentSession = new GameSession
         {
-            SaveVersion = 1,
+            SaveVersion = GameSessionMigration.CurrentSaveVersion,
             Level = _level,
             TileSize = 64,
             Player = new PlayerSessionState
